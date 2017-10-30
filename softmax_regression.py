@@ -141,3 +141,23 @@ def softmaxRegression(X, Y, k):
 
     return W
 
+
+def getAccuracy(X, Y):
+    """
+    outputs the accuracy of the model for a given X and Y
+    (total correct / total examples)
+    """
+    _, prediction = getProbsAndPreds(X)
+    accuracy = sum(prediction == Y)/(float(len(Y)))
+    return accuracy
+
+mnist = mnist_data.read_data_sets("MNIST_data/", one_hot=False)
+batch = mnist.train.next_batch(500)
+tb = mnist.train.next_batch(100)
+
+Y = batch[1]
+X = batch[0]
+testY = tb[1]
+testX = tb[0]
+
+print X
