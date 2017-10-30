@@ -8,10 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse
 
-import mnist_data.py
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=False)
-batch = mnist.train.next_batch(500)
-tb = mnist.train.next_batch(100)
+import mnist_data
+
 
 def getLoss(W, X, Y, lam):
     '''
@@ -142,3 +140,4 @@ def softmaxRegression(X, Y, k):
         W = W - learnRate * grad
 
     return W
+
