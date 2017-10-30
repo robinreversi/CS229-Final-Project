@@ -123,7 +123,7 @@ def softmaxRegression(X, Y, k):
     :return: n x k weights matrix W, with columns the weight vectors
             corresponding to each class
     '''
-    
+
     n = X.shape[1]
     W = np.zeros(n, k)
 
