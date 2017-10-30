@@ -8,6 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse
 
+import mnist_data.py
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=False)
+batch = mnist.train.next_batch(500)
+tb = mnist.train.next_batch(100)
 
 def getLoss(W, X, Y, lam):
     """
@@ -50,8 +54,10 @@ def softmax(z):
     outputs an m x k matrix with the ith jth entry being
     the probability that example i is in category j
     """
+    print z
     z -= np.max(z)
     probs = (np.exp(z).T / np.sum(np.exp(z),axis=1)).T
+    print probs
     return probs
     print "original: " + str(z)
     print np.sum(np.exp(z), axis=1)
