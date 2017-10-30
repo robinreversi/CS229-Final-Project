@@ -7,14 +7,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse
-
 import mnist_data
 
 
 def getLoss(W, X, Y, lam):
     '''
 
-    :param W: weight matrix where each entry column represents the kth category's
+    :param W: n x k weight matrix where each entry column represents the kth category's
         weight for that feature
     :param X: data, m x n matrix
     :param Y: m x 1 vector, with each entry between 0 and k, to later be converted
@@ -27,7 +26,8 @@ def getLoss(W, X, Y, lam):
     m = X.shape[0]
     # convert int to one-hot representation
     # m x k matrix
-    one_hot_Y = convToOneHot(Y)
+    k = W.shape[1]
+    one_hot_Y = makeOneHot(Y, k)
 
     # multiply a m x n matrix with an n x k matrix to get a m x k matrix,
     # where m = num examples, n = features, k = categories
@@ -43,7 +43,7 @@ def getLoss(W, X, Y, lam):
     loss = (-1 / m) * np.sum(one_hot_Y * np.log(probs) + lam / 2 * np.sum(W*W))
 
     # n x k matrix
-    grad = (-1 / m) * np.dot(x.T, (one_hot_Y - probs)) + lam * W
+    grad = (-1 / m) * np.dot(X.T, (one_hot_Y - probs)) + lam * W
 
     return (loss, grad)
 
@@ -60,7 +60,7 @@ def makeOneHot(Y, k):
 
     # number of rows
     m = Y.shape[0]
-    OH = np.zeros(m, k)
+    OH = np.zeros((m, k))
 
     # put a 1 in the corresponding column for each row
     # e.g. if the class for example j is 5, put a 1 at (j, 5)
@@ -77,11 +77,8 @@ def softmax(z):
     :return: m x k matrix with the ith jth entry being
     the probability that example i is in category j
     '''
-
-    print z
     z -= np.max(z)
     probs = (np.exp(z).T / np.sum(np.exp(z),axis=1)).T
-    print probs
     return probs
     print "original: " + str(z)
     print np.sum(np.exp(z), axis=1)
@@ -125,20 +122,20 @@ def softmaxRegression(X, Y, k):
     '''
 
     n = X.shape[1]
-    W = np.zeros(n, k)
+    W = np.zeros((n, k))
 
     # parameters that can be altered
     scale, iterations, learnRate = 1, 1000, 1e-5
 
     # loss vector is intended for plotting loss - not crucial
-    # lossVec = []
+    lossVec = []
 
     # batch gradient descent for given number of iterations
     for _ in range(iterations):
         loss, grad = getLoss(W, X, Y, scale)
-        # lossVec.append(loss)
+        lossVec.append(loss)
         W = W - learnRate * grad
-
+    plt.plot(lossVec)
     return W
 
 
@@ -147,7 +144,7 @@ def getAccuracy(X, Y):
     outputs the accuracy of the model for a given X and Y
     (total correct / total examples)
     """
-    _, prediction = getProbsAndPreds(X)
+    _, prediction = getPredictions(X)
     accuracy = sum(prediction == Y)/(float(len(Y)))
     return accuracy
 
@@ -160,4 +157,4 @@ X = batch[0]
 testY = tb[1]
 testX = tb[0]
 
-print X
+softmaxRegression(X, Y, 10)
