@@ -6,7 +6,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-%matplotlib inline
 import scipy.sparse
 
 
@@ -35,15 +34,36 @@ def getLoss(W, X, Y, lam):
 
     # perform softmax to get probabilities
     # m x k matrix
-    prob = softmax(scores)
+    probs = softmax(scores)
 
     # calculations for loss
-    loss = (-1 / m) * np.sum(one_hot_Y * np.log(prob) + lam / 2 * np.sum(W*W))
+    loss = (-1 / m) * np.sum(one_hot_Y * np.log(probs) + lam / 2 * np.sum(W*W))
 
     # n x k matrix
-    grad = (-1 / m) * np.dot(x.T, (one_hot_Y - prob)) + lam * W
+    grad = (-1 / m) * np.dot(x.T, (one_hot_Y - probs)) + lam * W
 
     return (loss, grad)
 
 def softmax(z):
+    """
+    takes in a m x k matrix of weighted products,
+    outputs an m x k matrix with the ith jth entry being
+    the probability that example i is in category j
+    """
     z -= np.max(z)
+    probs = (np.exp(z).T / np.sum(np.exp(z),axis=1)).T
+    return probs
+    print "original: " + str(z)
+    print np.sum(np.exp(z), axis=1)
+    print np.exp(z).T / np.sum(np.exp(z), axis=1)
+    # flattens the matrix, finds the max value
+    # and then subtracts the max from every entry in z
+    # !!! NOT SURE IF THIS IS NECESSARY??? !!!
+    # possibly to prevent e^x from being too large
+    z -= np.max(z)
+
+    softmax = (np.exp(z) / np.sum(np.exp(z),axis=1)).T
+    print sm
+    print z
+
+softmax(np.arange(6).reshape(3, 2))
