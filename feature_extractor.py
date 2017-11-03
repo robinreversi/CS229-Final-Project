@@ -1,8 +1,9 @@
-
 # Feature extractor for CS 229 Final Project: Whose Rap is it Anyways?
 # Alex Wang, Robin Cheong, Vince Ranganathan
 # jwang98, robinc20, akranga @ stanford.edu
 # Updated 11/01/2017
+
+from nltk.stem.snowball import SnowballStemmer
 
 def featureExtractor(input):
     '''
@@ -58,9 +59,13 @@ def featureExtractor(input):
         :return: n/a (Vocabulary and Length features of phi updated)
         '''
         totalWords = 0
+        stemmer = SnowballStemmer("english")
         for str in verse:
             # convert to list of words
             line = str.lower().split()  # TODO remove punctuation
+
+            # stems list of words before use
+            line = [stemmer.stem('word') for word in line]
 
             # add line length to distribution
             phi['linelendist'][len(line)] = phi['linelendist'].get(len(line), 0) + 1
@@ -124,3 +129,4 @@ input = "The world is spinning\nThe days are changing\nThe lives are hungry\nAnd
 phi = featureExtractor(input)
 print(phi)
 """
+
