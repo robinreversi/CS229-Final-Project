@@ -25,7 +25,7 @@ def scrape():
         urls = getUrls()
         ind = 0
         for url in urls:
-            sleep(random.randint(0, 7))
+            sleep(random.randint(0, 15))
             response = requests.get(url, headers={'User-Agent': random.choice(user_agents)},
                                     proxies=random.choice(proxies))
             soup = BeautifulSoup(response.content, 'lxml')
