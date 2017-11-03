@@ -53,16 +53,20 @@ def featureExtractor(input):
         #phi.update({'f-wordsLen%d': {}})
         #phi.update({'f-nAbuses%d': {}})
 
-    def vocabularyAndLength(phi, verse, nFeats=8):
+    def Vocabulary_Length(phi, verse, nFeats=8):
         '''
         :param phi: as given
         :param verse: as given
         :return: n/a (Vocabulary and Length features of phi updated)
         '''
         totalWords = 0
+        stemmer = SnowballStemmer("english")
         for str in verse:
             # convert to list of words
             line = str.lower().split()  # TODO remove punctuation if desired
+
+            # stems list of words before use
+            line = [stemmer.stem('word') for word in line]
 
             # add line length to distribution
             phi['_linesLen%d' % len(line)] = phi.get('_linesLen%d' % len(line), 0) + 1
@@ -84,7 +88,7 @@ def featureExtractor(input):
         # add fraction of words that are unique = number of unique words / total number of words
         phi['_vocabRich'] = (len(phi.keys()) - nFeats) / float(totalWords)
 
-    def rhyme(phi, verse, lookahead=2):
+    def Rhyme(phi, verse, lookahead=2):
         '''
         :param phi: as given
         :param verse: as given
@@ -116,8 +120,8 @@ def featureExtractor(input):
     initialize(phi, verse)
 
     # feature extraction
-    vocabularyAndLength(phi, verse)
-    rhyme(phi, verse)
+    Vocabulary_Length(phi, verse)
+    Rhyme(phi, verse)
 
     return phi
 
