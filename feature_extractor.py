@@ -4,7 +4,12 @@
 # jwang98, robinc20, akranga @ stanford.edu
 # Updated 11/02/2017
 
-def featureExtractor(input):
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+
+#----------------------------------#
+
+def featureExtractor(input, verbose=0):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---
     All feature keynames begin with an underscore (_). Others are words in the vocabulary.
@@ -30,12 +35,17 @@ def featureExtractor(input):
 
     abusiveLang = {}  # TODO put in a list of bad words?
 
-    def convertToList(input):
+    def preprocessText(input):
         '''
-        :param input: verse in some text format (delimited by '\n'?)
+        :param input: verse as a single string, (delimited by '\n'?)
         :return: list where elements are lines of the verse
         '''
-        return input.splitlines()
+        def stemInput(input):
+            words = input.split()
+            return [ps.stem(word) for word in words]
+
+        lines = input.splitlines()
+        return [" ".join(stemInput(line.lower())) for line in lines]
 
     def initialize(phi, verse):
         '''
@@ -47,12 +57,6 @@ def featureExtractor(input):
         phi['_incpt'] = 1
         phi['_verseLen'] = len(verse)
 
-        # setting up the distributions as dicts
-        #phi.update({'f-vocab': {}})
-        #phi.update({'f-linesLen%d': {}})
-        #phi.update({'f-wordsLen%d': {}})
-        #phi.update({'f-nAbuses%d': {}})
-
     def Vocabulary_Length(phi, verse, nFeats=8):
         '''
         :param phi: as given
@@ -60,13 +64,12 @@ def featureExtractor(input):
         :return: n/a (Vocabulary and Length features of phi updated)
         '''
         totalWords = 0
-        stemmer = SnowballStemmer("english")
         for str in verse:
             # convert to list of words
-            line = str.lower().split()  # TODO remove punctuation if desired
+            line = str.split()  # TODO remove punctuation if desired
 
             # stems list of words before use
-            line = [stemmer.stem('word') for word in line]
+            line = [word for word in line]
 
             # add line length to distribution
             phi['_linesLen%d' % len(line)] = phi.get('_linesLen%d' % len(line), 0) + 1
@@ -112,10 +115,12 @@ def featureExtractor(input):
                         break
         return
 
-    #######################################
+    #--------EXECUTE--------#
 
     # setup
-    verse = convertToList(input)
+    verse = preprocessText(input)
+    if verbose: print(verse)
+
     phi = {}
     initialize(phi, verse)
 
@@ -125,14 +130,18 @@ def featureExtractor(input):
 
     return phi
 
-'''
-input = "The world is spinning\n" \
-        "The days are changing\n" \
-        "The lives are hungry\n" \
-        "And I am so funny\n" \
-        "I like to head food\n" \
-        "Does that rhyme with rod\n" \
-        "Hello all my friends"
-phi = featureExtractor(input)
-print(phi)
-'''
+#----------------------------------#
+
+def test():
+    input = "The world is spinning\n" \
+            "The days are changing\n" \
+            "The lives are hungry\n" \
+            "And I am so funny\n" \
+            "I like to eat food\n" \
+            "Does that rhyme with rod\n" \
+            "Fucking hell dude\n" \
+            "Hello all my friends"
+    phi = featureExtractor(input, verbose=1)
+    print(phi)
+
+test()

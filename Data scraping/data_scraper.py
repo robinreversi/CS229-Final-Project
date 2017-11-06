@@ -1,3 +1,4 @@
+
 import pylyrics3
 from py_genius import Genius
 import csv
@@ -79,3 +80,4 @@ def scrape():
 scrape()
 data = pd.read_csv('songs.csv',delimiter='|')
 print(data.head())
+
