@@ -19,6 +19,7 @@ def getArtists():
 
 
 
+
 def writeIDs(gen):
     ids_tosearch = []
     for artist in getArtists():
@@ -48,9 +49,8 @@ def lyrics_from_song_api_path(song_api_path):
   return lyrics
 
 
-
 def scrape():
-    with open('songs.csv','w',encoding='utf-8') as file:
+    with open('test.csv','w',encoding='utf-8') as file:
         writer = csv.writer(file, delimiter = '|')
         gen = Genius('thRsqBz-IHPVCj0IU6_VNpRjRs9o2HGNxN_WAAoXCyOJPuRbhyb0MSJGNFcTnnlQ')
         ids = list(map(int, getIDs()))
@@ -58,7 +58,7 @@ def scrape():
         for artist in artists:
             name = artist
             title = ''
-            k = 0
+            k = 9
             num_songs = 0
             lst = []
             response = gen.search(artist)
@@ -74,8 +74,8 @@ def scrape():
                 print(newRow)
                 writer.writerow(newRow)
                 k += 1
-                if k == len(response['response']['hits']) - 1:
-                    break
+                #if k == len(response['response']['hits']) - 1:
+                break
 scrape()
 data = pd.read_csv('songs.csv',delimiter='|')
 print(data.head())

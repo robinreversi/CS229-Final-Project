@@ -136,6 +136,7 @@ def softmaxRegression(X, Y, k):
         lossVec.append(loss)
         W = W - learnRate * grad
     plt.plot(lossVec)
+    plt.show()
     return W
 
 

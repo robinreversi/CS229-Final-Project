@@ -2,26 +2,27 @@
 # Feature extractor for CS 229 Final Project: Whose Rap is it Anyways?
 # Alex Wang, Robin Cheong, Vince Ranganathan
 # jwang98, robinc20, akranga @ stanford.edu
-# Updated 11/01/2017
+# Updated 11/02/2017
 
 def featureExtractor(input):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---
-    -Intercept 'incpt': 1
+    All feature keynames begin with an underscore (_). Others are words in the vocabulary.
+    -Intercept '_incpt': 1
 
     --Vocabulary
-    -Vocabulary density 'vocabdense': (float) fraction of words that are unique
-    -Vocabulary 'vocab': (dict) map of (number of words) : (number of occurrences of word)
-    -Abusive language distribution 'abusivelangdist': (list) vector representing distribution of number of abusive words per sentence
+    -Vocabulary richness '_vocabRich': (float) fraction of words that are unique
+    -Vocabulary 'word': (int) number of occurrences of word
+    -Abusive language distribution '_nAbuses%d': (int) number of lines with %d abuses
 
     --Length
-    -Line length distribution 'linelendist': (list) vector representing distribution of line length in words
-    -Word length distribution 'wordlendist': (list) vector representing distribution of word length in chars
-    -Verse length 'verselength': (int) length of the verse in lines
+    -Line length distribution '_linesLen%d': (int) number of lines of length %d words
+    -Word length distribution '_wordsLen%d': (int) number of words with %d chars
+    -Verse length '_verseLen': (int) length of the verse in lines
 
     --Rhyme
-    -Weak rhyme approximation 'weakrhymes': (int) number of weak rhymes (up to 2 lines ahead, exactly last two chars match)
-    -Strong rhyme approximation 'strongrhymes': (int) number of strong rhymes (up to 2 lines ahead, exactly last three chars match)
+    -Weak rhyme approximation '_nWeakRhymes': (int) number of weak rhymes (up to 2 lines ahead, exactly last two chars match)
+    -Strong rhyme approximation '_nStrongRhymes': (int) number of strong rhymes (up to 2 lines ahead, exactly last three chars match)
 
     :param input: a string of text (with lines delimited by '\n'?) representing a single verse
     :return: the feature vector for the input
@@ -43,46 +44,51 @@ def featureExtractor(input):
         :return: n/a (phi initialized)
         '''
         # initializing the feature vector as a dict
-        phi.update({'incpt': 1, 'verselength': len(verse)})
+        phi['_incpt'] = 1
+        phi['_verseLen'] = len(verse)
 
         # setting up the distributions as dicts
-        phi.update({'vocab': {}})
-        phi.update({'linelendist': {}})
-        phi.update({'wordlendist': {}})
-        phi.update({'abusivelangdist': {}})
+        #phi.update({'f-vocab': {}})
+        #phi.update({'f-linesLen%d': {}})
+        #phi.update({'f-wordsLen%d': {}})
+        #phi.update({'f-nAbuses%d': {}})
 
-    def vocabularyAndLength(phi, verse):
+    def Vocabulary_Length(phi, verse, nFeats=8):
         '''
         :param phi: as given
         :param verse: as given
         :return: n/a (Vocabulary and Length features of phi updated)
         '''
         totalWords = 0
+        stemmer = SnowballStemmer("english")
         for str in verse:
             # convert to list of words
-            line = str.lower().split()  # TODO remove punctuation
+            line = str.lower().split()  # TODO remove punctuation if desired
+
+            # stems list of words before use
+            line = [stemmer.stem('word') for word in line]
 
             # add line length to distribution
-            phi['linelendist'][len(line)] = phi['linelendist'].get(len(line), 0) + 1
+            phi['_linesLen%d' % len(line)] = phi.get('_linesLen%d' % len(line), 0) + 1
 
             # add amount of abusive language to distribution
             abuses = len([w for w in line if w in abusiveLang])
-            phi['abusivelangdist'][abuses] = phi['abusivelangdist'].get(abuses, 0) + 1
+            phi['_nAbuses%d' % abuses] = phi.get('_nAbuses%d' % abuses, 0) + 1
 
             for word in line:
                 # add word to vocab
-                phi['vocab'][word] = phi['vocab'].get(word, 0) + 1
+                phi['%s' % word] = phi.get('%s' % word, 0) + 1
 
                 # add word length to distribution
-                phi['wordlendist'][len(word)] = phi['wordlendist'].get(len(word), 0) + 1
+                phi['_wordsLen%d' % len(word)] = phi.get('_wordsLen%d' % len(word), 0) + 1
 
             # update word count
             totalWords += len(line)
 
         # add fraction of words that are unique = number of unique words / total number of words
-        phi.update({'vocabdense': len(phi['vocab'].keys()) / float(totalWords)})
+        phi['_vocabRich'] = (len(phi.keys()) - nFeats) / float(totalWords)
 
-    def rhyme(phi, verse, lookahead=2):
+    def Rhyme(phi, verse, lookahead=2):
         '''
         :param phi: as given
         :param verse: as given
@@ -99,10 +105,10 @@ def featureExtractor(input):
                 if verse[lineNo][-2:] == verse[compLineNo][-2:]:
                     # third-last char as well?
                     if verse[lineNo][-3] == verse[compLineNo][-3]:
-                        phi['strongrhymes'] = phi.get('strongrhymes', 0) + 1
+                        phi['_nStrongRhymes'] = phi.get('_nStrongRhymes', 0) + 1
                         break
                     else:
-                        phi['weakrhymes'] = phi.get('weakrhymes', 0) + 1
+                        phi['_nWeakRhymes'] = phi.get('_nWeakRhymes', 0) + 1
                         break
         return
 
@@ -114,13 +120,19 @@ def featureExtractor(input):
     initialize(phi, verse)
 
     # feature extraction
-    vocabularyAndLength(phi, verse)
-    rhyme(phi, verse)
+    Vocabulary_Length(phi, verse)
+    Rhyme(phi, verse)
 
     return phi
 
-"""
-input = "The world is spinning\nThe days are changing\nThe lives are hungry\nAnd I am so funny\nI like to head food\nDoes that rhyme with rod\nHello all my friends"
+'''
+input = "The world is spinning\n" \
+        "The days are changing\n" \
+        "The lives are hungry\n" \
+        "And I am so funny\n" \
+        "I like to head food\n" \
+        "Does that rhyme with rod\n" \
+        "Hello all my friends"
 phi = featureExtractor(input)
 print(phi)
-"""
+'''
