@@ -65,12 +65,12 @@ def featureExtractor(raw_data, filename, verbose=0):
     """
     #--------EXECUTE--------#
 
-    def preprocessText(input):
+    def preprocessText(lyrics):
         '''
         :param input: verse as a single string, (delimited by '\n'?)
         :return: list where elements are lines of the verse
         '''
-        words = input.decode('utf-8').split()
+        words = lyrics.decode('utf-8').split()
         return [ps.stem(word) for word in words]
     # setup
     # set of all words that appear in the song
@@ -85,6 +85,7 @@ def featureExtractor(raw_data, filename, verbose=0):
         #print data_pt
         artist = artist_map[data_pt[0]]
         vocab_dict = dict.fromkeys(vocab, 0)
+        print data_pt
         for word in preprocessText(data_pt[2]):
             if(word in vocab_dict):
                 vocab_dict[word] += 1
@@ -114,8 +115,8 @@ test()
 
 raw_data = pd.read_csv('data_scraping/songs.csv', delimiter='|').as_matrix()
 test_data = pd.read_csv('data_scraping/test2.csv', delimiter='|').as_matrix()
-print test_data
+#print test_data
 #print raw_data
 
-featureExtractor(raw_data, 'train_data.csv')
+#featureExtractor(raw_data, 'train_data.csv')
 featureExtractor(test_data, 'test_data.csv')

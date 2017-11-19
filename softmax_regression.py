@@ -133,11 +133,10 @@ def softmaxRegression(X, Y, k, testX, testY):
         loss, grad = getLoss(W, X, Y, scale)
         lossVec.append(loss)
         W = W - learnRate * grad
-    plt.plot(lossVec)
-    print getAccuracy(X, Y, W)
-    print getAccuracy(testX, testY, W)
+    #plt.plot(lossVec)
+    print "Train Accuracy: " + str(getAccuracy(X, Y, W))
+    print "Test Accuracy: " + str(getAccuracy(testX, testY, W))
     #plt.show()
-    print W
     return W
 
 
@@ -151,15 +150,16 @@ def getAccuracy(X, Y, W):
     return accuracy
 
 data = pd.read_csv('train_data.csv').sample(frac=1)
+
 print data
 Y = data['0'].values
 print Y
-X = data[['%d' %i for i in range(1,8840)]].values
+X = data.iloc[:, 1:]
 print X
 #print X
 
 test_data = pd.read_csv('test_data.csv').sample(frac=1)
-testX = test_data[['%d' %i for i in range(1,8840)]].values
+testX = test_data.iloc[:, 1:]
 testY = test_data['0'].values
 
 softmaxRegression(X, Y, 12, testX, testY)
