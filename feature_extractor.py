@@ -119,5 +119,5 @@ print test_data
 
 #print raw_data
 
-#featureExtractor(raw_data, 'train_data.csv')
+featureExtractor(raw_data, 'train_data.csv')
 featureExtractor(test_data, 'test_data.csv')
