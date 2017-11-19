@@ -40,4 +40,4 @@ def buildVocabulary():
 #-----------------------------------#
 
 
-print(buildVocabulary())
+#print(buildVocabulary())
