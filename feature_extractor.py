@@ -4,12 +4,30 @@
 # jwang98, robinc20, akranga @ stanford.edu
 # Updated 11/02/2017
 
-from nltk.stem import PorterStemmer
-ps = PorterStemmer()
+from nltk.stem import PorterStemmer as ps
+from vocabulary_builder import buildVocabulary
+import pandas as pd
+
+ps = ps()
+
 
 #----------------------------------#
 
-def featureExtractor(input, verbose=0):
+def getArtists():
+    with open('./data_scraping/artists.txt') as f:
+        return f.read().splitlines()
+
+
+def extract_artist_map():
+    artists = getArtists()
+    artist_map = {}
+    for i, artist in enumerate(artists):
+        artist_map[artist] = i
+    return artist_map
+
+artist_map = extract_artist_map()
+
+def featureExtractor(raw_data, filename, verbose=0):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---
     All feature keynames begin with an underscore (_). Others are words in the vocabulary.
@@ -34,20 +52,8 @@ def featureExtractor(input, verbose=0):
     '''
 
     abusiveLang = {}  # TODO put in a list of bad words?
-
-    def preprocessText(input):
-        '''
-        :param input: verse as a single string, (delimited by '\n'?)
-        :return: list where elements are lines of the verse
-        '''
-        def stemInput(input):
-            words = input.split()
-            return [ps.stem(word) for word in words]
-
-        lines = input.splitlines()
-        return [" ".join(stemInput(line.lower())) for line in lines]
-
-    def initialize(phi, verse):
+    """
+    def initialize(phi, vocabulary):
         '''
         :param phi: as given
         :param verse: as given
@@ -56,86 +62,45 @@ def featureExtractor(input, verbose=0):
         # initializing the feature vector as a dict
         phi['_incpt'] = 1
         phi['_verseLen'] = len(verse)
-
-    def Vocabulary_Length(phi, verse, nFeats=8):
-        '''
-        :param phi: as given
-        :param verse: as given
-        :return: n/a (Vocabulary and Length features of phi updated)
-        '''
-        totalWords = 0
-        for str in verse:
-            # convert to list of words
-            line = str.split()  # TODO remove punctuation if desired
-
-            # stems list of words before use
-            line = [word for word in line]
-
-            # add line length to distribution
-            phi['_linesLen%d' % len(line)] = phi.get('_linesLen%d' % len(line), 0) + 1
-
-            # add amount of abusive language to distribution
-            abuses = len([w for w in line if w in abusiveLang])
-            phi['_nAbuses%d' % abuses] = phi.get('_nAbuses%d' % abuses, 0) + 1
-
-            for word in line:
-                # add word to vocab
-                phi['%s' % word] = phi.get('%s' % word, 0) + 1
-
-                # add word length to distribution
-                phi['_wordsLen%d' % len(word)] = phi.get('_wordsLen%d' % len(word), 0) + 1
-
-            # update word count
-            totalWords += len(line)
-
-        # add fraction of words that are unique = number of unique words / total number of words
-        phi['_vocabRich'] = (len(phi.keys()) - nFeats) / float(totalWords)
-
-    def Rhyme(phi, verse, lookahead=2):
-        '''
-        :param phi: as given
-        :param verse: as given
-        :param lookahead: number of lines ahead to consider for a rhyme (default is two lines)
-        :return: n/a (Rhyme features of phi updated)
-        '''
-        # iterating through all lines with at least 1 lookahead
-        for lineNo in range(len(verse) - 1):
-            linesLeft = len(verse) - lineNo - 1
-
-            # iterating through all the NEXT remaining lines within the lookahead
-            for compLineNo in range(lineNo + 1, lineNo + min(lookahead, linesLeft) + 1):
-                # matching last two chars
-                if verse[lineNo][-2:] == verse[compLineNo][-2:]:
-                    # third-last char as well?
-                    if verse[lineNo][-3] == verse[compLineNo][-3]:
-                        phi['_nStrongRhymes'] = phi.get('_nStrongRhymes', 0) + 1
-                        break
-                    else:
-                        phi['_nWeakRhymes'] = phi.get('_nWeakRhymes', 0) + 1
-                        break
-        return
-
+    """
     #--------EXECUTE--------#
 
+    def preprocessText(input):
+        '''
+        :param input: verse as a single string, (delimited by '\n'?)
+        :return: list where elements are lines of the verse
+        '''
+        words = input.decode('utf-8').split()
+        return [ps.stem(word) for word in words]
     # setup
-    verse = preprocessText(input)
-    if verbose: print(verse)
+    # set of all words that appear in the song
+    vocab = buildVocabulary()
+    processed_data = []
 
-    phi = {}
-    initialize(phi, verse)
+    # data_pt[0] = artist
+    # data_pt[1] = song name
+    # data_pt[2] = lyrics
+    print len(raw_data)
+    for data_pt in raw_data:
+        #print data_pt
+        artist = artist_map[data_pt[0]]
+        vocab_dict = dict.fromkeys(vocab, 0)
+        for word in preprocessText(data_pt[2]):
+            if(word in vocab_dict):
+                vocab_dict[word] += 1
+        phi = ([1] + list(vocab_dict.values()))
+        processed_data.append([artist] + phi)
+    processed_df = pd.DataFrame(processed_data)
+    print processed_df.head()
+    processed_df.to_csv(filename)
 
-    # feature extraction
-    Vocabulary_Length(phi, verse)
-    Rhyme(phi, verse)
-
-    return phi
 
 #----------------------------------#
-
+'''
 def test():
     input = "The world is spinning\n" \
-            "The days are changing\n" \
-            "The lives are hungry\n" \
+            "The days are's changing\n" \
+            "The lives are [rest] hungry\n" \
             "And I am so funny\n" \
             "I like to eat food\n" \
             "Does that rhyme with rod\n" \
@@ -145,3 +110,12 @@ def test():
     print(phi)
 
 test()
+'''
+
+raw_data = pd.read_csv('data_scraping/songs.csv', delimiter='|').as_matrix()
+test_data = pd.read_csv('data_scraping/test2.csv', delimiter='|').as_matrix()
+print test_data
+#print raw_data
+
+featureExtractor(raw_data, 'train_data.csv')
+featureExtractor(test_data, 'test_data.csv')

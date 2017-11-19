@@ -7,8 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse
-import mnist_data
-
+from random import shuffle
 
 def getLoss(W, X, Y, lam):
     '''
@@ -90,7 +89,6 @@ def softmax(z):
     z -= np.max(z)
 
     softmax = (np.exp(z) / np.sum(np.exp(z),axis=1)).T
-    print sm
     print z
 
 # softmax(np.arange(6).reshape(3, 2))
@@ -111,7 +109,7 @@ def getPredictions(X, W):
     return probabilities, predictions
 
 
-def softmaxRegression(X, Y, k):
+def softmaxRegression(X, Y, k, testX, testY):
     '''
 
     :param X: m x n data input
@@ -120,7 +118,7 @@ def softmaxRegression(X, Y, k):
     :return: n x k weights matrix W, with columns the weight vectors
             corresponding to each class
     '''
-
+    print X
     n = X.shape[1]
     W = np.zeros((n, k))
 
@@ -136,26 +134,32 @@ def softmaxRegression(X, Y, k):
         lossVec.append(loss)
         W = W - learnRate * grad
     plt.plot(lossVec)
-    plt.show()
+    print getAccuracy(X, Y, W)
+    print getAccuracy(testX, testY, W)
+    #plt.show()
+    print W
     return W
 
 
-def getAccuracy(X, Y):
+def getAccuracy(X, Y, W):
     """
     outputs the accuracy of the model for a given X and Y
     (total correct / total examples)
     """
-    _, prediction = getPredictions(X)
+    _, prediction = getPredictions(X, W)
     accuracy = sum(prediction == Y)/(float(len(Y)))
     return accuracy
 
-mnist = mnist_data.read_data_sets("MNIST_data/", one_hot=False)
-batch = mnist.train.next_batch(500)
-tb = mnist.train.next_batch(100)
+data = pd.read_csv('train_data.csv').sample(frac=1)
+print data
+Y = data['0'].values
+print Y
+X = data[['%d' %i for i in range(1,8840)]].values
+print X
+#print X
 
-Y = batch[1]
-X = batch[0]
-testY = tb[1]
-testX = tb[0]
+test_data = pd.read_csv('test_data.csv').sample(frac=1)
+testX = test_data[['%d' %i for i in range(1,8840)]].values
+testY = test_data['0'].values
 
-softmaxRegression(X, Y, 10)
+softmaxRegression(X, Y, 12, testX, testY)
