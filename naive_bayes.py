@@ -13,8 +13,6 @@ def nb_train(matrix, category, num_artists):
     N = matrix.shape[1]
     ###################
 
-    print matrix
-
     for i in range(num_artists):
         key = "log-freq-" + str(i)
 
@@ -53,14 +51,20 @@ def nb_test(matrix, state, num_artists):
         key = "log-freq-" + str(i)
         p_artist_i = matrix.dot(state[key]) + np.log(state[i])
         estimates.append(p_artist_i)
-    total_matrix = np.array(estimates)
-    output = np.argmax(estimates, axis=0)
+    total_matrix = np.array(estimates).T
+    print total_matrix.shape
+
+    output = np.argmax(total_matrix, axis=1)
+    print output
     ###################
     return output
 
 def evaluate(output, label):
+    print
+    print "OUTPUT: " + str(output)
+    print label
     error = (output != label).sum() * 1. / len(output)
-    print 'Error: %1.4f' % error
+    print 'Accuracy: %1.4f' % (1 - error)
     return error
 
 def findIndicators(state, tokenlist):
@@ -81,19 +85,24 @@ def main():
     artists = getArtists()
     num_artists = len(artists)
 
-    trainCategory = np.array(trainMatrix.iloc[:, 0])
-    trainData = np.array(trainMatrix.iloc[:, 1:])
+    trainCategory = np.array(trainMatrix.iloc[:, 1])
+    trainData = np.array(trainMatrix.iloc[:, 2:])
 
     state = nb_train(trainData, trainCategory, num_artists)
 
-    testCategory = testMatrix.iloc[:, 0]
-    testData = testMatrix.iloc[:, 1:]
+    print testMatrix
+
+    testCategory = testMatrix.iloc[:, 1]
+    print "TEST CATEOG: " + str(testCategory)
+    testData = testMatrix.iloc[:, 2:]
+
+#    output_train = nb_test(trainData, state, num_artists)
 
     output = nb_test(testData, state, num_artists)
 
-
-    print output
     error = evaluate(output, testCategory)
+
+#    evaluate(output_train, trainCategory)
 
     #findIndicators(state, )
     return
