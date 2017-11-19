@@ -114,8 +114,9 @@ test()
 '''
 
 raw_data = pd.read_csv('data_scraping/songs.csv', delimiter='|').as_matrix()
-test_data = pd.read_csv('data_scraping/test2.csv', delimiter='|').as_matrix()
-#print test_data
+test_data = pd.read_csv('data_scraping/test.csv', delimiter='|').as_matrix()
+print test_data
+
 #print raw_data
 
 #featureExtractor(raw_data, 'train_data.csv')
