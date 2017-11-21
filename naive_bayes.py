@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from operator import itemgetter
 np.set_printoptions(threshold=100000)
 
 
@@ -52,19 +53,36 @@ def nb_test(matrix, state, num_artists):
         p_artist_i = matrix.dot(state[key]) + np.log(state[i])
         estimates.append(p_artist_i)
     total_matrix = np.array(estimates).T
-    print total_matrix.shape
 
     output = np.argmax(total_matrix, axis=1)
-    print output
     ###################
     return output
 
-def evaluate(output, label):
-    print
-    print "OUTPUT: " + str(output)
-    print label
+def evaluate(output, label, artists):
+    print "__EVALUATION__"
     error = (output != label).sum() * 1. / len(output)
-    print 'Accuracy: %1.4f' % (1 - error)
+    print 'Overall Accuracy: %1.4f' % (1 - error)
+    num_artists = len(artists)
+    print len(label)
+    acc_per_artists = []
+    for i in range(num_artists):
+        artist_locs = np.where(label == i)
+        artist_error = (output[artist_locs] != label[artist_locs]).sum() * 1. / len(artist_locs[0])
+        acc_per_artists.append((artists[i], 1 - artist_error))
+        print "NUM GUESSED FOR " + str(artists[i])
+        print len(artist_locs[0])
+        if(artists[i] == "Snoop Dogg"):
+            print output[artist_locs]
+            print artists[6]
+            print artists[11]
+
+
+    acc_per_artists.sort(key=itemgetter(1), reverse=True)
+    for artist, value in acc_per_artists:
+        print "Artist: " + str(artist)
+        print "Accuracy: " + str(value)
+        print
+
     return error
 
 def findIndicators(state, tokenlist):
@@ -90,19 +108,12 @@ def main():
 
     state = nb_train(trainData, trainCategory, num_artists)
 
-    print testMatrix
-
-    testCategory = testMatrix.iloc[:, 1]
-    print "TEST CATEOG: " + str(testCategory)
-    testData = testMatrix.iloc[:, 2:]
-
-#    output_train = nb_test(trainData, state, num_artists)
+    testCategory = np.array(testMatrix.iloc[:, 1])
+    testData = np.array(testMatrix.iloc[:, 2:])
 
     output = nb_test(testData, state, num_artists)
 
-    error = evaluate(output, testCategory)
-
-#    evaluate(output_train, trainCategory)
+    error = evaluate(output, testCategory, artists)
 
     #findIndicators(state, )
     return
