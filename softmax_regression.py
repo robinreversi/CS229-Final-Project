@@ -156,7 +156,6 @@ else:
 
 X = np.array(data.iloc[:, 1:])
 Y = np.array(data['0'].values).reshape((X.shape[0], 1))
-p = np.random.permutation(X.shape[0])
 shuffleX = X[p, :]
 shuffleY = Y[p, :]
 
