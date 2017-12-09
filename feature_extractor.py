@@ -81,19 +81,19 @@ def featureExtractor(raw_data, filename, verbose=0):
     # data_pt[0] = artist
     # data_pt[1] = song name
     # data_pt[2] = lyrics
-    print len(raw_data)
+    #print len(raw_data)
     for data_pt in raw_data:
         #print data_pt
         artist = artist_map[data_pt[0]]
         vocab_dict = dict.fromkeys(vocab, 0)
-        print data_pt
+        #print data_pt
         for word in preprocessText(data_pt[2]):
             if(word in vocab_dict):
                 vocab_dict[word] += 1
         phi = ([1] + list(vocab_dict.values()))
         processed_data.append([artist] + phi)
     processed_df = pd.DataFrame(processed_data)
-    print processed_df.head()
+    #print processed_df.head()
     processed_df.to_csv(filename)
 
 
@@ -118,7 +118,7 @@ raw_data, test_data = train_test_split(data,test_size=0.33, random_state=420)
 raw_data = raw_data.as_matrix()
 test_data = test_data.as_matrix()
 
-print test_data
+#print test_data
 
-featureExtractor(raw_data, 'train_data.csv')
-featureExtractor(test_data, 'test_data.csv')
+featureExtractor(raw_data, 'train_data_3-2000.csv')
+featureExtractor(test_data, 'test_data_3-2000.csv')

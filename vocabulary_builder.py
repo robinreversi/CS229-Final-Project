@@ -8,6 +8,7 @@ import pandas as pd
 import unicodedata
 
 from nltk.stem import PorterStemmer
+import operator
 ps = PorterStemmer()
 
 #----------------------------------#
@@ -25,6 +26,7 @@ def buildVocabulary():
     data = pd.read_csv("data_scraping/songs.csv", delimiter='|')
     lyrics = data['Lyrics'].values
 
+    '''
     vocab = set()
 
     for song in lyrics:
@@ -36,6 +38,26 @@ def buildVocabulary():
     print(len(vocab))
 
     return vocab
+    '''
+
+    # With frequency filtering
+
+    vocab = {}
+
+    for song in lyrics:
+        text = preprocessText(song)
+        for word in text:
+            vocab[word] = vocab.get(word, 0) + 1
+
+    upper = 2000
+    lower = 3
+
+    return { k:v for k, v in vocab.items() if (lower <= v <= upper) }
+
+    #return set(dict(sorted(vocab.iteritems(), key=operator.itemgetter(1), reverse=True)[k:]).keys())
+
+
+
 
 #-----------------------------------#
 
