@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse
 from random import shuffle
+import sys
 
 def getLoss(W, X, Y, lam):
     '''
@@ -138,7 +139,20 @@ def getAccuracy(X, Y, W):
     accuracy = sum(prediction.reshape(Y.shape) == Y) / (float(len(Y)))
     return accuracy
 
-data = pd.read_csv('train_data.csv').sample(frac=1)
+
+if len(sys.argv) > 1
+    lower = sys.argv[1]
+    upper = sys.argv[2]
+
+    strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
+    stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
+
+    data = pd.read_csv(strain).sample(frac=1)
+    test_data = pd.read_csv(stest).sample(frac=1)
+else:
+    data = pd.read_csv('train_data_freqfilter.csv').sample(frac=1)
+    test_data = pd.read_csv('test_data_freqfilter.csv').sample(frac=1)
+
 
 X = np.array(data.iloc[:, 1:])
 Y = np.array(data['0'].values).reshape((X.shape[0], 1))
@@ -146,12 +160,14 @@ p = np.random.permutation(X.shape[0])
 shuffleX = X[p, :]
 shuffleY = Y[p, :]
 
-test_data = pd.read_csv('test_data.csv').sample(frac=1)
+
 testX = test_data.iloc[:, 1:]
 testY = test_data['0'].values
 
 train_errors = []
 dev_errors = []
+
+train_loss, dev_loss = softmaxRegression(shuffleX, shuffleY, 12, testX, testY)
 '''
 for i in range(50, X.shape[0], 10):
     print 'ITERS: ' + str(i)
@@ -159,13 +175,14 @@ for i in range(50, X.shape[0], 10):
     print train_loss
     train_errors.append(train_loss)
     dev_errors.append(dev_loss)
+'''
+#print train_errors
+#print dev_errors
 
-print train_errors
-print dev_errors
 '''
 train_errors = [12.04028479228354, 13.45751774010404, 14.483991789149266, 15.926975111964301, 18.571494160266308, 21.558350699492081, 26.492528319559717, 28.297392434902985, 29.003319944107847, 30.284034530440017, 31.197416034111566, 33.193805293677414, 35.321229358369521, 37.759781912433894, 42.126089627009101, 44.21112806893116, 48.533280070040369, 51.487038476316854, 53.311675502522981, 57.233503525659259, 58.707834993377077, 60.751164059076913, 62.64582122047662, 65.671786266512072, 72.937262764908013, 74.622094414058779]
 dev_errors = [395.46921040859934, 384.59031666860449, 390.18434701470562, 375.10567912362421, 370.91050408259741, 352.96964179284032, 338.60253095903226, 320.55602876640449, 317.02776221603699, 318.7810633160683, 321.47258149525248, 323.78691833953133, 314.16037962703058, 304.31386667264155, 295.69887317869836, 291.0993419803176, 282.94531523723981, 280.2773634545847, 272.43643991666625, 279.91608008636274, 280.74994355103462, 276.70330786676038, 275.10842417537378, 271.92706515066629, 272.50908413748982, 268.83977342129896]
 plt.plot(range(50, X.shape[0], 10), train_errors)
 plt.plot(range(50, X.shape[0], 10), dev_errors)
 plt.show()
-
+'''

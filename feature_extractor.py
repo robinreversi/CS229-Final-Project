@@ -8,6 +8,7 @@ from nltk.stem import PorterStemmer as ps
 from vocabulary_builder import buildVocabulary
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import sys
 
 ps = ps()
 
@@ -28,7 +29,7 @@ def extract_artist_map():
 
 artist_map = extract_artist_map()
 
-def featureExtractor(raw_data, filename, verbose=0):
+def featureExtractor(raw_data, filename, lower=0, upper=20000, verbose=0):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---
     All feature keynames begin with an underscore (_). Others are words in the vocabulary.
@@ -75,7 +76,7 @@ def featureExtractor(raw_data, filename, verbose=0):
         return [ps.stem(word) for word in words]
     # setup
     # set of all words that appear in the song
-    vocab = buildVocabulary()
+    vocab = buildVocabulary(lower, upper)
     processed_data = []
 
     # data_pt[0] = artist
@@ -119,6 +120,17 @@ raw_data = raw_data.as_matrix()
 test_data = test_data.as_matrix()
 
 #print test_data
+if len(sys.argv) > 1:
+    lower = sys.argv[1]
+    upper = sys.argv[2]
 
-featureExtractor(raw_data, 'train_data_.csv')
-featureExtractor(test_data, 'test_data_.csv')
+    strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
+    stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
+
+    featureExtractor(raw_data, strain, lower, upper)
+    featureExtractor(test_data, stest, lower, upper)
+
+else:
+    featureExtractor(raw_data, 'train_data_freqfilter.csv')
+    featureExtractor(test_data, 'test_data_freqfilter.csv')
+

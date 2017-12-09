@@ -13,7 +13,7 @@ ps = PorterStemmer()
 
 #----------------------------------#
 
-def buildVocabulary():
+def buildVocabulary(lower, upper):
 
     def preprocessText(input):
         '''
@@ -49,10 +49,10 @@ def buildVocabulary():
         for word in text:
             vocab[word] = vocab.get(word, 0) + 1
 
-    upper = 2000
-    lower = 3
+    dic = { k:v for k, v in vocab.items() if (int(lower) <= v <= int(upper)) }
 
-    return { k:v for k, v in vocab.items() if (lower <= v <= upper) }
+    return set(dic.keys())
+
 
     #return set(dict(sorted(vocab.iteritems(), key=operator.itemgetter(1), reverse=True)[k:]).keys())
 

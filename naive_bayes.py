@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from operator import itemgetter
+import sys
+
 np.set_printoptions(threshold=100000)
 
 
@@ -69,12 +71,14 @@ def evaluate(output, label, artists):
         artist_locs = np.where(label == i)
         artist_error = (output[artist_locs] != label[artist_locs]).sum() * 1. / len(artist_locs[0])
         acc_per_artists.append((artists[i], 1 - artist_error))
+        """
         print "NUM GUESSED FOR " + str(artists[i])
         print len(artist_locs[0])
         if(artists[i] == "Snoop Dogg"):
             print output[artist_locs]
             print artists[6]
             print artists[11]
+        """
 
 
     acc_per_artists.sort(key=itemgetter(1), reverse=True)
@@ -97,8 +101,20 @@ def findIndicators(state, tokenlist):
 
 
 def main():
-    trainMatrix = pd.read_csv('train_data.csv').sample(frac=1)
-    testMatrix = pd.read_csv('test_data.csv').sample(frac=1)
+    if len(sys.argv) > 1
+        lower = sys.argv[1]
+        upper = sys.argv[2]
+
+        strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
+        stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
+
+        trainMatrix = pd.read_csv(strain).sample(frac=1)
+        testMatrix = pd.read_csv(stest).sample(frac=1)
+
+    else:
+        trainMatrix = pd.read_csv('train_data.csv').sample(frac=1)
+        testMatrix = pd.read_csv('test_data.csv').sample(frac=1)
+
 
     artists = getArtists()
     num_artists = len(artists)
