@@ -40,6 +40,9 @@ def nb_train(matrix, category, num_artists):
     ###################
     return state
 
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
 def nb_test(matrix, state, num_artists):
     output = np.zeros(matrix.shape[0])
 
@@ -55,8 +58,9 @@ def nb_test(matrix, state, num_artists):
     total_matrix = np.array(estimates).T
 
     output = np.argmax(total_matrix, axis=1)
+    top_2 = np.argsort(total_matrix, axis=1)[:,[-1,-2]]
     ###################
-    return output
+    return output, top_2
 
 def evaluate(output, label, artists):
     print "__EVALUATION__"
@@ -71,11 +75,29 @@ def evaluate(output, label, artists):
         acc_per_artists.append((artists[i], 1 - artist_error))
         print "NUM GUESSED FOR " + str(artists[i])
         print len(artist_locs[0])
-        if(artists[i] == "Snoop Dogg"):
-            print output[artist_locs]
-            print artists[6]
-            print artists[11]
 
+    acc_per_artists.sort(key=itemgetter(1), reverse=True)
+    for artist, value in acc_per_artists:
+        print "Artist: " + str(artist)
+        print "Accuracy: " + str(value)
+        print
+
+    return error
+
+def evaluateTop2(top_2, label, artists):
+    error = ((1 -np.any([top_2[:, 0] == label, top_2[:, 1] == label], axis=0)).sum()) * 1. / float(top_2.shape[0])
+    print 'Overall Accuracy: %1.4f' % (1 - error)
+    num_artists = len(artists)
+    print len(label)
+    acc_per_artists = []
+    for i in range(num_artists):
+        artist_locs = np.where(label == i)
+        print top_2[artist_locs, 0]
+        artist_accuracy = np.any([top_2[artist_locs, 0] == label[artist_locs],
+                        top_2[artist_locs, 1] == label[artist_locs]], axis=0).sum() * 1. / len(artist_locs[0])
+        acc_per_artists.append((artists[i], artist_accuracy))
+        print "NUM GUESSED FOR " + str(artists[i])
+        print len(artist_locs[0])
 
     acc_per_artists.sort(key=itemgetter(1), reverse=True)
     for artist, value in acc_per_artists:
@@ -97,8 +119,8 @@ def findIndicators(state, tokenlist):
 
 
 def main():
-    trainMatrix = pd.read_csv('train_data.csv').sample(frac=1)
-    testMatrix = pd.read_csv('test_data.csv').sample(frac=1)
+    trainMatrix = pd.read_csv('train_data_3-2000.csv').sample(frac=1)
+    testMatrix = pd.read_csv('test_data_3-2000.csv').sample(frac=1)
 
     artists = getArtists()
     num_artists = len(artists)
@@ -111,13 +133,13 @@ def main():
     testCategory = np.array(testMatrix.iloc[:, 1])
     testData = np.array(testMatrix.iloc[:, 2:])
 
-    output = nb_test(testData, state, num_artists)
-
+    output, top_2 = nb_test(testData, state, num_artists)
 
     error = evaluate(output, testCategory, artists)
+    evaluateTop2(top_2, testCategory, artists)
 
-    train_output = nb_test(trainData, state, num_artists)
-    train_error = evaluate(train_output, trainCategory, artists)
+    #train_output = nb_test(trainData, state, num_artists)
+    #train_error = evaluate(train_output, trainCategory, artists)
 
     #findIndicators(state, )
     return
