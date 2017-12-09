@@ -120,5 +120,5 @@ test_data = test_data.as_matrix()
 
 #print test_data
 
-featureExtractor(raw_data, 'train_data_3-2000.csv')
-featureExtractor(test_data, 'test_data_3-2000.csv')
+featureExtractor(raw_data, 'train_data_.csv')
+featureExtractor(test_data, 'test_data_.csv')
