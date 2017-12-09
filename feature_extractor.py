@@ -117,11 +117,8 @@ data = pd.read_csv('data_scraping/songs.csv', delimiter='|')
 raw_data, test_data = train_test_split(data,test_size=0.33, random_state=420)
 raw_data = raw_data.as_matrix()
 test_data = test_data.as_matrix()
-#raw_data = pd.read_csv('data_scraping/songs.csv', delimiter='|').as_matrix()
-#test_data = pd.read_csv('data_scraping/test.csv', delimiter='|').as_matrix()
-print test_data
 
-#print raw_data
+print test_data
 
 featureExtractor(raw_data, 'train_data.csv')
 featureExtractor(test_data, 'test_data.csv')

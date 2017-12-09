@@ -113,7 +113,11 @@ def main():
 
     output = nb_test(testData, state, num_artists)
 
+
     error = evaluate(output, testCategory, artists)
+
+    train_output = nb_test(trainData, state, num_artists)
+    train_error = evaluate(train_output, trainCategory, artists)
 
     #findIndicators(state, )
     return
