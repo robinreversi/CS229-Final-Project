@@ -141,31 +141,31 @@ def getAccuracy(X, Y, W):
     """
     _, prediction, top_2 = getPredictions(X, W)
     accuracy = sum(prediction.reshape(Y.shape) == Y) / (float(len(Y)))
-    print accuracy
     #mistakes = np.where(prediction.reshape(Y.shape) != Y)[0]
-    #print mistakes
-    #print "MISTAKES MADE"
-    #for mistake in mistakes:
-    #    print mistake
-    #    print "PREDICTION: " + "[" + str(prediction[mistake]) + "]"
-    #    print "ACTUAL: " + str(Y[mistake]) 
-    #    print
+    print mistakes
+    print "MISTAKES MADE"
+    for mistake in mistakes:
+        print mistake
+        print "PREDICTION: " + "[" + str(prediction[mistake]) + "]"
+        print "ACTUAL: " + str(Y[mistake]) 
+        print
 
-    #top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
-    #print "TOP2"
-    #print top2_acc
+    top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
+    print "TOP2"
+    print top2_acc
     return accuracy
 
 def main():
     if len(sys.argv) > 1:
         lower = sys.argv[1]
         upper = sys.argv[2]
+        TF = sys.argv[3]
 
-        strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
-        stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
+        strain = 'train_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
+        sdev = 'test_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
 
-        data = pd.read_csv(strain).sample(frac=1)
-        test_data = pd.read_csv(stest).sample(frac=1)
+        train = pd.read_csv(strain).sample(frac=1)
+        dev = pd.read_csv(sdev).sample(frac=1)
     else:
         train = pd.read_csv('norm_train_3-2000.csv').sample(frac=1)
         dev = pd.read_csv('norm_dev_3-2000.csv').sample(frac=1)
@@ -176,7 +176,8 @@ def main():
     dev_x = np.array(dev.iloc[:, 1:])
     dev_y = np.array(dev['0'].values).reshape((dev_x.shape[0], 1)).astype(int)
 
-    softmaxRegression(train_x, train_y, dev_x, dev_y, 12)
+    print train_x.shape
+    softmaxRegression(train_x, train_y, dev_x, dev_y)
 
 def test_lambdas(train_x, train_y, dev_x, dev_y):
     lambdas = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
