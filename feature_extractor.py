@@ -127,6 +127,10 @@ train_data = train_data.as_matrix()
 dev_data = dev_data.as_matrix()
 test_data = test_data.as_matrix()
 
+pd.DataFrame(train_data).to_csv('chosen_train.csv')
+pd.DataFrame(dev_data).to_csv('chosen_dev.csv')
+pd.DataFrame(test_data).to_csv('chosen_test.csv')
+
 if len(sys.argv) > 1:
     lower = sys.argv[1]
     upper = sys.argv[2]

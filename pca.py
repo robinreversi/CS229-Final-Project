@@ -5,6 +5,8 @@ from sklearn.decomposition import PCA as sklearnPCA
 
 np.set_printoptions(threshold=10000000000000)
 
+datasets = ['train_3-2000.csv', 'dev_3-2000.csv', 'test_3-2000.csv']
+
 def normalize(data):
     m, n = data.shape
     means = (data.sum(axis=0) * 1.0 / m)
@@ -16,16 +18,15 @@ def normalize(data):
 
 
 
-filename = 'dev_3-2000.csv'
-
-train_data = pd.read_csv(filename)
-train_x = np.array(train_data.iloc[:, 1:]).astype(float)
-train_y = np.array(train_data['0'].values).reshape((train_x.shape[0], 1))
-X_std = StandardScaler().fit_transform(train_x)
-#raw = np.array(pd.read_csv('train_data.csv')).astype(float)
-normalized = normalize(train_x)
-normalized = pd.DataFrame(np.append(train_y, normalized, axis=1))
-normalized.to_csv('norm_' + filename, index=False)
+for filename in datasets:
+    train_data = pd.read_csv(filename)
+    train_x = np.array(train_data.iloc[:, 1:]).astype(float)
+    train_y = np.array(train_data['0'].values).reshape((train_x.shape[0], 1))
+    X_std = StandardScaler().fit_transform(train_x)
+    #raw = np.array(pd.read_csv('train_data.csv')).astype(float)
+    normalized = normalize(train_x)
+    normalized = pd.DataFrame(np.append(train_y, normalized, axis=1))
+    normalized.to_csv('norm_' + filename, index=False)
 '''
 print normalized
 

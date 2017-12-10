@@ -9,7 +9,7 @@ import scipy.sparse
 from random import shuffle
 import sys
 
-def getLoss(W, X, Y, lam):
+def getLoss(W, X, Y, lamb):
     '''
 
     :param W: n x k weight matrix where each entry column represents the kth category's
@@ -39,10 +39,10 @@ def getLoss(W, X, Y, lam):
     probs = softmax(scores)
 
     # calculations for loss
-    loss = (-1 / m) * np.sum(one_hot_Y * np.log(probs) + lam / 2 * np.sum(W*W))
+    loss = (-1 / m) * np.sum(one_hot_Y * np.log(probs) + lamb / 2.0 * np.sum(W*W))
 
     # n x k matrix
-    grad = (-1 / m) * np.dot(X.T, (one_hot_Y - probs)) + lam * W
+    grad = (-1 / m) * np.dot(X.T, (one_hot_Y - probs)) + lamb * W
 
     return (loss, grad)
 
@@ -95,7 +95,7 @@ def getPredictions(X, W):
     return probabilities, predictions, top_2
 
 
-def softmaxRegression(X, Y, k, testX, testY):
+def softmaxRegression(train_x, train_y, dev_x, dev_y, iters=1000, num_classes=12, lamb=1):
     '''
 
     :param X: m x n data input
@@ -104,28 +104,34 @@ def softmaxRegression(X, Y, k, testX, testY):
     :return: n x k weights matrix W, with columns the weight vectors
             corresponding to each class
     '''
-    n = X.shape[1]
-    W = np.zeros((n, k))
+    n = train_x.shape[1]
+    W = np.zeros((n, num_classes))
 
     # parameters that can be altered
-    scale, iterations, learnRate = 3, 1000, 1e-5
+    learnRate = 1e-5
 
     # loss vector is intended for plotting loss - not crucial
     lossVec = []
 
     # batch gradient descent for given number of iterations
-    for _ in range(iterations):
-        loss, grad = getLoss(W, X, Y, scale)
+    for _ in range(iters):
+        loss, grad = getLoss(W, train_x, train_y, lamb)
         lossVec.append(loss)
         W = W - learnRate * grad
-    #plt.plot(lossVec)
-    print "Train Accuracy: " + str(getAccuracy(X, Y, W))
-    print "Test Accuracy: " + str(getAccuracy(testX, testY, W))
+    #plt.plot(lossVec)  
+
+    train_acc = getAccuracy(train_x, train_y, W)
+    dev_acc = getAccuracy(dev_x, dev_y, W)
+
+    print("Train Accuracy: ", train_acc)
+    print("Test Accuracy: ", dev_acc)
     #plt.show()
 
-    train_loss = getLoss(W, X, Y, scale)[0]
-    dev_loss = getLoss(W, testX, testY, scale)[0]
-    return train_loss, dev_loss
+    print(W)
+
+    train_loss = getLoss(W, train_x, train_y, lamb)[0]
+    dev_loss = getLoss(W, dev_x, dev_y, lamb)[0]
+    return train_loss, dev_loss, train_acc, dev_acc
 
 
 def getAccuracy(X, Y, W):
@@ -145,48 +151,86 @@ def getAccuracy(X, Y, W):
     #    print "ACTUAL: " + str(Y[mistake]) 
     #    print
 
-    top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
-    print "TOP2"
-    print top2_acc
+    #top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
+    #print "TOP2"
+    #print top2_acc
     return accuracy
 
-if len(sys.argv) > 1:
-    lower = sys.argv[1]
-    upper = sys.argv[2]
+def main():
+    if len(sys.argv) > 1:
+        lower = sys.argv[1]
+        upper = sys.argv[2]
 
-    strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
-    stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
+        strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
+        stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
 
-    data = pd.read_csv(strain).sample(frac=1)
-    test_data = pd.read_csv(stest).sample(frac=1)
-else:
-    data = pd.read_csv('normalized_train_3-2000.csv').sample(frac=1)
-    test_data = pd.read_csv('normalized_test_3-2000.csv').sample(frac=1)
+        data = pd.read_csv(strain).sample(frac=1)
+        test_data = pd.read_csv(stest).sample(frac=1)
+    else:
+        train = pd.read_csv('norm_train_3-2000.csv').sample(frac=1)
+        dev = pd.read_csv('norm_dev_3-2000.csv').sample(frac=1)
 
-X = np.array(data.iloc[:, 1:])
-Y = np.array(data['0'].values).reshape((X.shape[0], 1)).astype(int)
+    train_x = np.array(train.iloc[:, 1:])
+    train_y = np.array(train['0'].values).reshape((train_x.shape[0], 1)).astype(int)
 
+    dev_x = np.array(dev.iloc[:, 1:])
+    dev_y = np.array(dev['0'].values).reshape((dev_x.shape[0], 1)).astype(int)
 
-testX = np.array(test_data.iloc[:, 1:])
-testY = np.array(test_data['0'].values).reshape((testX.shape[0], 1)).astype(int)
+    softmaxRegression(train_x, train_y, dev_x, dev_y, 12)
 
-train_loss, dev_loss = softmaxRegression(X, Y, 12, testX, testY)
-'''
-train_errors = []
-dev_errors = []
+def test_lambdas(train_x, train_y, dev_x, dev_y):
+    lambdas = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
 
-for i in range(50, X.shape[0], 10):
-    print 'ITERS: ' + str(i)
-    train_loss, dev_loss = softmaxRegression(X[0:i, :], Y[0:i, :], 12, testX, testY)
-    print train_loss
-    train_errors.append(train_loss)
-    dev_errors.append(dev_loss)
+    train_losses = []
+    dev_losses = [] 
+    train_accs = []
+    dev_accs = [] 
 
-print train_errors
-print dev_errors
+    for lamb in lambdas:
+        print("LAMB", lamb)
+        train_loss, dev_loss, train_acc, dev_acc = softmaxRegression(train_x, train_y, dev_x, dev_y, lamb=lamb)
+        train_losses.append(train_loss)
+        dev_losses.append(dev_loss)
+        train_accs.append(train_acc)
+        dev_accs.append(dev_acc)
 
-plt.plot(range(50, X.shape[0], 10), train_errors)
-plt.plot(range(50, X.shape[0], 10), dev_errors)
-plt.show()
+    print(train_losses)
+    print(dev_losses)
+    print(train_accs)
+    print(dev_accs)
 
-'''
+    plt.figure(1)
+    plt.subplot(211)
+    plt.plot(lambdas, train_losses, 'r', label='Train')
+    plt.plot(lambdas, dev_losses, 'b', label='Dev')
+    plt.legend()
+
+    plt.title('Loss vs. Lambdas')
+
+    plt.subplot(212)
+    plt.plot(lambdas, train_accs, 'r', label='Train')
+    plt.plot(lambdas, dev_accs, 'b', label='Dev')
+    plt.title('Accuracy vs. Lambas')
+    plt.legend(loc="lower right")
+    plt.show()
+
+def plot_learning_curve(train_x, train_y, dev_x, dev_y):
+    train_errors = []
+    dev_errors = []
+
+    for i in range(50, X.shape[0], 10):
+        print 'ITERS: ' + str(i)
+        train_loss, dev_loss = softmaxRegression(train_x[0:i, :], train_y[0:i, :], dev_x, dev_y)
+        print train_loss
+        train_errors.append(train_loss)
+        dev_errors.append(dev_loss)
+
+    print train_errors
+    print dev_errors
+
+    plt.plot(range(50, X.shape[0], 10), train_errors)
+    plt.plot(range(50, X.shape[0], 10), dev_errors)
+    plt.show()
+
+if __name__ == '__main__':
+    main()
