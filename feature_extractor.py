@@ -41,7 +41,7 @@ def extract_artist_map():
 artist_map = extract_artist_map()
 
 
-def featureExtractor(raw_data, filename, lower=0, upper=20000, verbose=0):
+def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regular', verbose=0):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---
     All feature keynames begin with an underscore (_). Others are words in the vocabulary.
@@ -86,22 +86,78 @@ def featureExtractor(raw_data, filename, lower=0, upper=20000, verbose=0):
         '''
         words = lyrics.decode('utf-8').split()
         return [ps.stem(word) for word in words]
+
     # setup
     # set of all words that appear in the song
-    vocab = buildVocabulary(lower, upper)
     processed_data = []
+
+    #TF = 'binary'
+    K = 0.5
+
+    '''
+    --- for IDF ---
+    
+    word_doc_counter = dict.fromkeys(vocab, 0)
+    n_docs = 0.0
+    
+    for data_pt in raw_data:
+        lyrics = preprocessText(data_pt[2])
+
+        update_wdcounter = dict.fromkeys(vocab, 0)
+        for word in lyrics:
+            if word in update_wdcounter:
+                update_wdcounter[word] = 1
+
+        for word in word_doc_counter:
+            word_doc_counter[word] += update_wdcounter[word]
+
+        n_docs += 1.0
+    '''
 
     for data_pt in raw_data:
         artist = artist_map[data_pt[0]]
         vocab_dict = dict.fromkeys(vocab, 0)
-        for word in preprocessText(data_pt[2]):
-            if(word in vocab_dict):
-                vocab_dict[word] += 1
+        lyrics = preprocessText(data_pt[2])
+
+        def wordFrequencies(vocab_dict, lyrics):
+            for word in lyrics:
+                if word in vocab_dict:
+                    vocab_dict[word] += 1
+
+        if TF == 'binary':
+            for word in lyrics:
+                if word in vocab_dict:
+                    vocab_dict[word] = 1
+
+        elif TF == 'regular':
+            wordFrequencies(vocab_dict, lyrics)
+
+        elif TF == 'log':
+            wordFrequencies(vocab_dict, lyrics)
+            for word in lyrics:
+                if word in vocab_dict:
+                    vocab_dict[word] = np.log(1 + vocab_dict[word])
+
+        elif TF == 'norm':
+            wordFrequencies(vocab_dict, lyrics)
+            max_freq = max(vocab_dict.values())
+            for word in lyrics:
+                if word in vocab_dict:
+                    vocab_dict[word] = K + ((1 - K) * (vocab_dict[word] / max_freq))
+
+        '''
+        IDF = True
+        if IDF:
+            for word in lyrics:
+                if word in vocab_dict:
+                    vocab_dict[word] *= np.log(n_docs / word_doc_counter[word])
+        '''
+
         phi = ([1] + list(vocab_dict.values()))
         processed_data.append([artist] + phi)
 
     processed_df = pd.DataFrame(processed_data)
-    processed_df.to_csv(filename)
+    processed_df.to_csv(filename + '_' + TF + '.csv')
 
 
 #----------------------------------#
@@ -127,23 +183,26 @@ train_data = train_data.as_matrix()
 dev_data = dev_data.as_matrix()
 test_data = test_data.as_matrix()
 
-pd.DataFrame(train_data).to_csv('chosen_train.csv')
-pd.DataFrame(dev_data).to_csv('chosen_dev.csv')
-pd.DataFrame(test_data).to_csv('chosen_test.csv')
+pd.DataFrame(train_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_train.csv', sep="|")
+pd.DataFrame(dev_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_dev.csv', sep="|")
+pd.DataFrame(test_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_test.csv', sep="|")
 
 if len(sys.argv) > 1:
     lower = sys.argv[1]
     upper = sys.argv[2]
+    TF = sys.argv[3] if len(sys.argv) > 3 else 'regular'
 
-    strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
-    sdev = 'dev_' + str(lower) + '-' + str(upper) + '.csv'
-    stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
-
-    featureExtractor(train_data, strain, lower, upper)
-    featureExtractor(dev_data, sdev, lower, upper)
-    featureExtractor(test_data, stest, lower, upper)
+    strain = 'train_' + str(lower) + '-' + str(upper)
+    sdev = 'dev_' + str(lower) + '-' + str(upper)
+    stest = 'test_' + str(lower) + '-' + str(upper)
+    vocab = buildVocabulary(lower, upper)
+    featureExtractor(train_data, strain, vocab, lower, upper, TF)
+    featureExtractor(dev_data, sdev, vocab, lower, upper, TF, vocab)
+    featureExtractor(test_data, stest, vocab, lower, upper, TF, vocab)
 
 else:
-    featureExtractor(train_data, 'train_data_freqfilter.csv')
-    featureExtractor(test_data, 'test_data_freqfilter.csv')
+    vocab = buildVocabulary(10, 1000)
+    featureExtractor(train_data, 'train_data', vocab)
+    featureExtractor(train_data, 'dev_data', vocab)
+    featureExtractor(test_data, 'test_data', vocab)
 

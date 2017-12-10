@@ -142,13 +142,13 @@ def getAccuracy(X, Y, W):
     _, prediction, top_2 = getPredictions(X, W)
     accuracy = sum(prediction.reshape(Y.shape) == Y) / (float(len(Y)))
     #mistakes = np.where(prediction.reshape(Y.shape) != Y)[0]
-    print mistakes
-    print "MISTAKES MADE"
-    for mistake in mistakes:
-        print mistake
-        print "PREDICTION: " + "[" + str(prediction[mistake]) + "]"
-        print "ACTUAL: " + str(Y[mistake]) 
-        print
+    #print mistakes
+    #print "MISTAKES MADE"
+    #for mistake in mistakes:
+    #    print mistake
+    #    print "PREDICTION: " + "[" + str(prediction[mistake]) + "]"
+    #    print "ACTUAL: " + str(Y[mistake]) 
+    #    print
 
     top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
     print "TOP2"
@@ -167,8 +167,8 @@ def main():
         train = pd.read_csv(strain).sample(frac=1)
         dev = pd.read_csv(sdev).sample(frac=1)
     else:
-        train = pd.read_csv('norm_train_3-2000.csv').sample(frac=1)
-        dev = pd.read_csv('norm_dev_3-2000.csv').sample(frac=1)
+        train = pd.read_csv('norm_train_data_regular.csv').sample(frac=1)
+        dev = pd.read_csv('norm_dev_data_regular.csv').sample(frac=1)
 
     train_x = np.array(train.iloc[:, 1:])
     train_y = np.array(train['0'].values).reshape((train_x.shape[0], 1)).astype(int)

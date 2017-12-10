@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA as sklearnPCA
 
 np.set_printoptions(threshold=10000000000000)
 
-datasets = ['train_3-2000.csv', 'dev_3-2000.csv', 'test_3-2000.csv']
+datasets = ['train_data_regular.csv', 'dev_data_regular.csv', 'test_data_regular.csv']
 
 def normalize(data):
     m, n = data.shape

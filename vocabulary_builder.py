@@ -21,7 +21,7 @@ def buildVocabulary(lower, upper):
         words = input.decode('utf-8').split()
         return [ps.stem(word) for word in words]
 
-    data = pd.read_csv("data_scraping/songs.csv", delimiter='|')
+    data = pd.read_csv("chosen_train.csv", delimiter='|')
     lyrics = data['Lyrics'].values
 
     # With frequency filtering
@@ -40,4 +40,4 @@ def buildVocabulary(lower, upper):
 
 #-----------------------------------#
 
-#print(buildVocabulary(3, 1000))
+print(len(buildVocabulary(3, 1000)))
