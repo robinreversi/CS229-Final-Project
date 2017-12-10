@@ -64,18 +64,6 @@ def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regula
     :return: the feature vector for the input
     '''
 
-    abusiveLang = {}  # TODO put in a list of bad words?
-    """
-    def initialize(phi, vocabulary):
-        '''
-        :param phi: as given
-        :param verse: as given
-        :return: n/a (phi initialized)
-        '''
-        # initializing the feature vector as a dict
-        phi['_incpt'] = 1
-        phi['_verseLen'] = len(verse)
-    """
     #--------EXECUTE--------#
 
     def preprocessText(lyrics):
@@ -155,26 +143,15 @@ def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regula
         phi = ([1] + list(vocab_dict.values()))
         processed_data.append([artist] + phi)
 
+    if(TF != 'binary'):
+        processed_data = normalize(np.array(processed_data))
+
     processed_df = pd.DataFrame(processed_data)
     processed_df.to_csv(filename + '_' + TF + '.csv')
 
 
 #----------------------------------#
-'''
-def test():
-    input = "The world is spinning\n" \
-            "The days are's changing\n" \
-            "The lives are [rest] hungry\n" \
-            "And I am so funny\n" \
-            "I like to eat food\n" \
-            "Does that rhyme with rod\n" \
-            "Fucking hell dude\n" \
-            "Hello all my friends"
-    phi = featureExtractor(input, verbose=1)
-    print(phi)
 
-test()
-'''
 data = pd.read_csv('data_scraping/finaldata.csv', delimiter='|')
 train_data, test_data = train_test_split(data,test_size=0.20, random_state=420)
 train_data, dev_data = train_test_split(train_data, test_size=.25, random_state=420)
@@ -182,9 +159,9 @@ train_data = train_data.as_matrix()
 dev_data = dev_data.as_matrix()
 test_data = test_data.as_matrix()
 
-pd.DataFrame(train_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_train.csv', sep="|")
-pd.DataFrame(dev_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_dev.csv', sep="|")
-pd.DataFrame(test_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_test.csv', sep="|")
+#pd.DataFrame(train_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_train.csv', sep="|")
+#pd.DataFrame(dev_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_dev.csv', sep="|")
+#pd.DataFrame(test_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_test.csv', sep="|")
 
 if len(sys.argv) > 1:
     lower = sys.argv[1]

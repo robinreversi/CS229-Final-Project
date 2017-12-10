@@ -1,4 +1,3 @@
-import pylyrics3
 from py_genius import Genius
 import csv
 import pandas as pd
