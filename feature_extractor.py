@@ -1,4 +1,4 @@
-
+ 
 # Feature extractor for CS 229 Final Project: Whose Rap is it Anyways?
 # Alex Wang, Robin Cheong, Vince Ranganathan
 # jwang98, robinc20, akranga @ stanford.edu
@@ -9,11 +9,21 @@ from vocabulary_builder import buildVocabulary
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import sys
+import numpy as np
 
 ps = ps()
 
-
 #----------------------------------#
+
+def normalize(data):
+    m, n = data.shape
+    means = (data.sum(axis=0) * 1.0 / m)
+    data = data - means
+    variance = np.square(data).sum(axis=0) * 1.0 / m
+    variance[variance == 0] = 1
+    data /= np.sqrt(variance)    
+    return data
+
 
 def getArtists():
     with open('./data_scraping/artists.txt') as f:
@@ -27,7 +37,9 @@ def extract_artist_map():
         artist_map[artist] = i
     return artist_map
 
+
 artist_map = extract_artist_map()
+
 
 def featureExtractor(raw_data, filename, lower=0, upper=20000, verbose=0):
     '''
@@ -79,22 +91,16 @@ def featureExtractor(raw_data, filename, lower=0, upper=20000, verbose=0):
     vocab = buildVocabulary(lower, upper)
     processed_data = []
 
-    # data_pt[0] = artist
-    # data_pt[1] = song name
-    # data_pt[2] = lyrics
-    #print len(raw_data)
     for data_pt in raw_data:
-        #print data_pt
         artist = artist_map[data_pt[0]]
         vocab_dict = dict.fromkeys(vocab, 0)
-        #print data_pt
         for word in preprocessText(data_pt[2]):
             if(word in vocab_dict):
                 vocab_dict[word] += 1
         phi = ([1] + list(vocab_dict.values()))
         processed_data.append([artist] + phi)
+
     processed_df = pd.DataFrame(processed_data)
-    #print processed_df.head()
     processed_df.to_csv(filename)
 
 
@@ -114,23 +120,26 @@ def test():
 
 test()
 '''
-data = pd.read_csv('data_scraping/songs.csv', delimiter='|')
-raw_data, test_data = train_test_split(data,test_size=0.33, random_state=420)
-raw_data = raw_data.as_matrix()
+data = pd.read_csv('data_scraping/finaldata.csv', delimiter='|')
+train_data, test_data = train_test_split(data,test_size=0.20, random_state=420)
+train_data, dev_data = train_test_split(train_data, test_size=.25, random_state=420)
+train_data = train_data.as_matrix()
+dev_data = dev_data.as_matrix()
 test_data = test_data.as_matrix()
 
-#print test_data
 if len(sys.argv) > 1:
     lower = sys.argv[1]
     upper = sys.argv[2]
 
-    strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
-    stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
+    strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
+    sdev = 'dev_' + str(lower) + '-' + str(upper) + '.csv'
+    stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
 
-    featureExtractor(raw_data, strain, lower, upper)
+    featureExtractor(train_data, strain, lower, upper)
+    featureExtractor(dev_data, sdev, lower, upper)
     featureExtractor(test_data, stest, lower, upper)
 
 else:
-    featureExtractor(raw_data, 'train_data_freqfilter.csv')
+    featureExtractor(train_data, 'train_data_freqfilter.csv')
     featureExtractor(test_data, 'test_data_freqfilter.csv')
 

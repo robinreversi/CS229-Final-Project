@@ -1,4 +1,3 @@
-#
 # This program runs softmax regression on a dataset
 #
 # Authors: Vince, Alex, Robin
@@ -47,7 +46,6 @@ def getLoss(W, X, Y, lam):
 
     return (loss, grad)
 
-
 # converts an m x 1 column vector with values in [0, k-1] to the corresponding one-hot m x k matrix
 def makeOneHot(Y, k):
     '''
@@ -69,7 +67,6 @@ def makeOneHot(Y, k):
 
     return OH
 
-
 def softmax(z):
     '''
 
@@ -81,7 +78,6 @@ def softmax(z):
     probs = (np.exp(z).T / np.sum(np.exp(z),axis=1)).T
     return probs
     
-
 def getPredictions(X, W):
     '''
 
@@ -93,8 +89,10 @@ def getPredictions(X, W):
 
     probabilities = softmax(np.dot(X, W))
     predictions = np.argmax(probabilities, axis=1)
+    top_2 = np.argsort(probabilities, axis=1)[:,[-1,-2]]
 
-    return probabilities, predictions
+
+    return probabilities, predictions, top_2
 
 
 def softmaxRegression(X, Y, k, testX, testY):
@@ -135,53 +133,60 @@ def getAccuracy(X, Y, W):
     outputs the accuracy of the model for a given X and Y
     (total correct / total examples)
     """
-    _, prediction = getPredictions(X, W)
+    _, prediction, top_2 = getPredictions(X, W)
     accuracy = sum(prediction.reshape(Y.shape) == Y) / (float(len(Y)))
+    print accuracy
+    #mistakes = np.where(prediction.reshape(Y.shape) != Y)[0]
+    #print mistakes
+    #print "MISTAKES MADE"
+    #for mistake in mistakes:
+    #    print mistake
+    #    print "PREDICTION: " + "[" + str(prediction[mistake]) + "]"
+    #    print "ACTUAL: " + str(Y[mistake]) 
+    #    print
+
+    top2_acc = np.any([top_2[:, 0] == Y[:, 0], top_2[:, 1] == Y[:, 0]], axis=0).sum() * 1. / len(Y)
+    print "TOP2"
+    print top2_acc
     return accuracy
 
-
-if len(sys.argv) > 1
+if len(sys.argv) > 1:
     lower = sys.argv[1]
     upper = sys.argv[2]
 
-    strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
-    stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
+    strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
+    stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
 
     data = pd.read_csv(strain).sample(frac=1)
     test_data = pd.read_csv(stest).sample(frac=1)
 else:
-    data = pd.read_csv('train_data_freqfilter.csv').sample(frac=1)
-    test_data = pd.read_csv('test_data_freqfilter.csv').sample(frac=1)
-
+    data = pd.read_csv('normalized_train_3-2000.csv').sample(frac=1)
+    test_data = pd.read_csv('normalized_test_3-2000.csv').sample(frac=1)
 
 X = np.array(data.iloc[:, 1:])
-Y = np.array(data['0'].values).reshape((X.shape[0], 1))
-shuffleX = X[p, :]
-shuffleY = Y[p, :]
+Y = np.array(data['0'].values).reshape((X.shape[0], 1)).astype(int)
 
 
-testX = test_data.iloc[:, 1:]
-testY = test_data['0'].values
+testX = np.array(test_data.iloc[:, 1:])
+testY = np.array(test_data['0'].values).reshape((testX.shape[0], 1)).astype(int)
 
+train_loss, dev_loss = softmaxRegression(X, Y, 12, testX, testY)
+'''
 train_errors = []
 dev_errors = []
 
-train_loss, dev_loss = softmaxRegression(shuffleX, shuffleY, 12, testX, testY)
-'''
 for i in range(50, X.shape[0], 10):
     print 'ITERS: ' + str(i)
-    train_loss, dev_loss = softmaxRegression(shuffleX[0:i, :], shuffleY[0:i, :], 12, testX, testY)
+    train_loss, dev_loss = softmaxRegression(X[0:i, :], Y[0:i, :], 12, testX, testY)
     print train_loss
     train_errors.append(train_loss)
     dev_errors.append(dev_loss)
-'''
-#print train_errors
-#print dev_errors
 
-'''
-train_errors = [12.04028479228354, 13.45751774010404, 14.483991789149266, 15.926975111964301, 18.571494160266308, 21.558350699492081, 26.492528319559717, 28.297392434902985, 29.003319944107847, 30.284034530440017, 31.197416034111566, 33.193805293677414, 35.321229358369521, 37.759781912433894, 42.126089627009101, 44.21112806893116, 48.533280070040369, 51.487038476316854, 53.311675502522981, 57.233503525659259, 58.707834993377077, 60.751164059076913, 62.64582122047662, 65.671786266512072, 72.937262764908013, 74.622094414058779]
-dev_errors = [395.46921040859934, 384.59031666860449, 390.18434701470562, 375.10567912362421, 370.91050408259741, 352.96964179284032, 338.60253095903226, 320.55602876640449, 317.02776221603699, 318.7810633160683, 321.47258149525248, 323.78691833953133, 314.16037962703058, 304.31386667264155, 295.69887317869836, 291.0993419803176, 282.94531523723981, 280.2773634545847, 272.43643991666625, 279.91608008636274, 280.74994355103462, 276.70330786676038, 275.10842417537378, 271.92706515066629, 272.50908413748982, 268.83977342129896]
+print train_errors
+print dev_errors
+
 plt.plot(range(50, X.shape[0], 10), train_errors)
 plt.plot(range(50, X.shape[0], 10), dev_errors)
 plt.show()
+
 '''

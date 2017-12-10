@@ -3,12 +3,10 @@
 # Alex Wang, Robin Cheong, Vince Ranganathan
 # jwang98, robinc20, akranga @ stanford.edu
 # Updated 11/04/2017
-
+from nltk.stem import PorterStemmer
 import pandas as pd
 import unicodedata
-
-from nltk.stem import PorterStemmer
-import operator
+import regex as re
 ps = PorterStemmer()
 
 #----------------------------------#
@@ -26,20 +24,6 @@ def buildVocabulary(lower, upper):
     data = pd.read_csv("data_scraping/songs.csv", delimiter='|')
     lyrics = data['Lyrics'].values
 
-    '''
-    vocab = set()
-
-    for song in lyrics:
-        # unicodedata.normalize('NFKD', song).encode('ascii', 'ignore')
-        text = preprocessText(song)
-        for word in text:
-            vocab.add(word)
-
-    print(len(vocab))
-
-    return vocab
-    '''
-
     # With frequency filtering
 
     vocab = {}
@@ -47,19 +31,13 @@ def buildVocabulary(lower, upper):
     for song in lyrics:
         text = preprocessText(song)
         for word in text:
+            word = re.sub(ur"\p{P}+", "", word)
             vocab[word] = vocab.get(word, 0) + 1
 
-    dic = { k:v for k, v in vocab.items() if (int(lower) <= v <= int(upper)) }
+    dic = {k:v for k, v in vocab.items() if (int(lower) <= v <= int(upper)) }
 
     return set(dic.keys())
 
-
-    #return set(dict(sorted(vocab.iteritems(), key=operator.itemgetter(1), reverse=True)[k:]).keys())
-
-
-
-
 #-----------------------------------#
 
-
-#print(buildVocabulary())
+#print(buildVocabulary(3, 1000))
