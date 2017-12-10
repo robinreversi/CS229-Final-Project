@@ -8,6 +8,12 @@ import matplotlib.pyplot as plt
 import scipy.sparse
 from random import shuffle
 import sys
+from vocabulary_builder import buildVocabulary
+
+
+def getArtists():
+    with open('./data_scraping/artists.txt') as f:
+        return f.read().splitlines()
 
 def getLoss(W, X, Y, lamb):
     '''
@@ -94,7 +100,6 @@ def getPredictions(X, W):
 
     return probabilities, predictions, top_2
 
-
 def softmaxRegression(train_x, train_y, dev_x, dev_y, iters=1000, num_classes=12, lamb=1):
     '''
 
@@ -127,12 +132,11 @@ def softmaxRegression(train_x, train_y, dev_x, dev_y, iters=1000, num_classes=12
     print("Test Accuracy: ", dev_acc)
     #plt.show()
 
-    print(W)
+    analyze_features(W)
 
     train_loss = getLoss(W, train_x, train_y, lamb)[0]
     dev_loss = getLoss(W, dev_x, dev_y, lamb)[0]
     return train_loss, dev_loss, train_acc, dev_acc
-
 
 def getAccuracy(X, Y, W):
     """
@@ -178,6 +182,18 @@ def main():
 
     print train_x.shape
     softmaxRegression(train_x, train_y, dev_x, dev_y)
+
+def analyze_features(W):
+    print("-----------------------------------------------")
+    print("ANALYSIS OF MOST IMPORTANT FEATURES FOR ARTISTS")
+    most_important = np.argsort(W.T, axis=1)[:, 0:5]
+    artists = getArtists()
+    print(most_important)
+    vocab = np.array(list(buildVocabulary(10, 1000)))
+    for i, row in enumerate(most_important):
+        print("MOST IMPORTANT FEATURES FOR ARTIST: " + str(artists[i]))
+        print vocab[row]
+    print("-----------------------------------------------")
 
 def test_lambdas(train_x, train_y, dev_x, dev_y):
     lambdas = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]

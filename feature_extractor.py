@@ -40,7 +40,6 @@ def extract_artist_map():
 
 artist_map = extract_artist_map()
 
-
 def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regular', verbose=0):
     '''
     ---FEATURES 'KEYNAME' : DESCRIPTION---

@@ -40,4 +40,4 @@ def buildVocabulary(lower, upper):
 
 #-----------------------------------#
 
-print(len(buildVocabulary(3, 1000)))
+#print(list(buildVocabulary(3, 1000)))
