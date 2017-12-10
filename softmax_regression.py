@@ -160,12 +160,13 @@ def main():
     if len(sys.argv) > 1:
         lower = sys.argv[1]
         upper = sys.argv[2]
+        TF = sys.argv[3]
 
-        strain = 'train_' + str(lower) + '-' + str(upper) + '.csv'
-        stest = 'test_' + str(lower) + '-' + str(upper) + '.csv'
+        strain = 'train_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
+        sdev = 'dev_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
 
         data = pd.read_csv(strain).sample(frac=1)
-        test_data = pd.read_csv(stest).sample(frac=1)
+        test_data = pd.read_csv(sdev).sample(frac=1)
     else:
         train = pd.read_csv('norm_train_3-2000.csv').sample(frac=1)
         dev = pd.read_csv('norm_dev_3-2000.csv').sample(frac=1)
