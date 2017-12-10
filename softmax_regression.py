@@ -108,7 +108,7 @@ def softmaxRegression(X, Y, k, testX, testY):
     W = np.zeros((n, k))
 
     # parameters that can be altered
-    scale, iterations, learnRate = 1, 1000, 1e-5
+    scale, iterations, learnRate = 3, 1000, 1e-5
 
     # loss vector is intended for plotting loss - not crucial
     lossVec = []
