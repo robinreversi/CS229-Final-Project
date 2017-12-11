@@ -9,7 +9,7 @@ import scipy.sparse
 from random import shuffle
 import sys
 from vocabulary_builder import buildVocabulary
-
+import random
 
 def getArtists():
     with open('./data_scraping/artists.txt') as f:
@@ -187,7 +187,17 @@ def main():
 def analyze_features(W):
     print("-----------------------------------------------")
     print("ANALYSIS OF MOST IMPORTANT FEATURES FOR ARTISTS")
-    most_important = np.argsort(W.T, axis=1)[:, 0:5]
+
+    def indicative(W):
+        imp = np.array(W)
+        for k in range(imp.shape[0]):          # feature
+            for i in range(imp.shape[1]):      # rapper
+                imp[k, i] = imp.shape[1] * W[k, i] - sum(W[k, :])
+        return imp
+
+    most_important = np.argsort(indicative(W[1:, :]).T, axis=1)[:, -5:]
+
+    # most_important = np.argsort(W.T, axis=1)[:, 0:5]
     artists = getArtists()
     print(most_important)
     vocab = np.array(list(buildVocabulary(10, 1000, 'chosen_train.csv')))
