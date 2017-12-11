@@ -132,7 +132,7 @@ def softmaxRegression(train_x, train_y, dev_x, dev_y, iters=1000, num_classes=12
     print("Test Accuracy: ", dev_acc)
     #plt.show()
 
-    analyze_features(W)
+    analyze_features(W) 
 
     train_loss = getLoss(W, train_x, train_y, lamb)[0]
     dev_loss = getLoss(W, dev_x, dev_y, lamb)[0]
