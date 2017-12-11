@@ -11,7 +11,7 @@ ps = PorterStemmer()
 
 #----------------------------------#
 
-def buildVocabulary(lower, upper):
+def buildVocabulary(lower, upper, filename):
 
     def preprocessText(input):
         '''
@@ -21,7 +21,7 @@ def buildVocabulary(lower, upper):
         words = input.decode('utf-8').split()
         return [ps.stem(word) for word in words]
 
-    data = pd.read_csv("chosen_train.csv", delimiter='|')
+    data = pd.read_csv(filename, delimiter='|')
     lyrics = data['Lyrics'].values
 
     # With frequency filtering

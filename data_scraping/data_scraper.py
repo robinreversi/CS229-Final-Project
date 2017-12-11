@@ -16,9 +16,6 @@ def getArtists():
     with open('artists.txt') as f:
         return f.read().splitlines()
 
-
-
-
 def writeIDs(gen):
     ids_tosearch = []
     for artist in getArtists():

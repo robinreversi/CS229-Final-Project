@@ -73,6 +73,8 @@ def evaluate(output, label, artists):
     acc_per_artists = []
     for i in range(num_artists):
         artist_locs = np.where(label == i)
+        print output
+        print label
         artist_error = (output[artist_locs] != label[artist_locs]).sum() * 1. / len(artist_locs[0])
         acc_per_artists.append((artists[i], 1 - artist_error))
    
@@ -86,6 +88,8 @@ def evaluate(output, label, artists):
     return error
 
 def evaluateTop2(top_2, label, artists):
+    print("----------------------------")
+    print("TOP 2")
     error = ((1 -np.any([top_2[:, 0] == label, top_2[:, 1] == label], axis=0)).sum()) * 1. / float(top_2.shape[0])
     print 'Overall Accuracy: %1.4f' % (1 - error)
     num_artists = len(artists)
@@ -106,6 +110,7 @@ def evaluateTop2(top_2, label, artists):
         print "Accuracy: " + str(value)
         print
 
+    print("---------------------------")
     return error
 
 def findIndicators(state, tokenlist):
@@ -131,14 +136,16 @@ def main():
         testMatrix = pd.read_csv(stest).sample(frac=1)
 
     else:
-        trainMatrix = pd.read_csv('train_data_3-2000.csv').sample(frac=1)
-        testMatrix = pd.read_csv('test_data_3-2000.csv').sample(frac=1)
+        trainMatrix = pd.read_csv('train_10-1000_binary.csv').sample(frac=1)
+        testMatrix = pd.read_csv('dev_10-1000_binary.csv').sample(frac=1)
 
     artists = getArtists()
     num_artists = len(artists)
 
     trainCategory = np.array(trainMatrix.iloc[:, 1])
+    print("TRAIN CATEGORY: ", trainCategory)
     trainData = np.array(trainMatrix.iloc[:, 2:])
+    print("TRAIN DATA: ", trainData)
 
     state = nb_train(trainData, trainCategory, num_artists)
 
@@ -148,10 +155,7 @@ def main():
     output, top_2 = nb_test(testData, state, num_artists)
 
     error = evaluate(output, testCategory, artists)
-    print "-------------------"
-    print "TOP 2: "
-    evaluateTop2(top_2, testCategory, artists)
-    print "-------------------"
+    #evaluateTop2(top_2, testCategory, artists)
 
     #train_output = nb_test(trainData, state, num_artists)
     #train_error = evaluate(train_output, trainCategory, artists)

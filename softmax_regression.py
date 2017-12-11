@@ -171,10 +171,11 @@ def main():
         train = pd.read_csv(strain).sample(frac=1)
         dev = pd.read_csv(sdev).sample(frac=1)
     else:
-        train = pd.read_csv('norm_train_data_regular.csv').sample(frac=1)
-        dev = pd.read_csv('norm_dev_data_regular.csv').sample(frac=1)
+        train = pd.read_csv('train_10-1000_binary.csv').sample(frac=1)
+        dev = pd.read_csv('dev_10-1000_binary.csv').sample(frac=1)
 
     train_x = np.array(train.iloc[:, 1:])
+    print train_x[0]
     train_y = np.array(train['0'].values).reshape((train_x.shape[0], 1)).astype(int)
 
     dev_x = np.array(dev.iloc[:, 1:])
@@ -189,7 +190,7 @@ def analyze_features(W):
     most_important = np.argsort(W.T, axis=1)[:, 0:5]
     artists = getArtists()
     print(most_important)
-    vocab = np.array(list(buildVocabulary(10, 1000)))
+    vocab = np.array(list(buildVocabulary(10, 1000, 'chosen_train.csv')))
     for i, row in enumerate(most_important):
         print("MOST IMPORTANT FEATURES FOR ARTIST: " + str(artists[i]))
         print vocab[row]
