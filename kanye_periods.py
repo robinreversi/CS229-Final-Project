@@ -16,3 +16,5 @@ PERIOD_3 = set({
     "Yeezus",
     "The Life of Pablo"
     })
+
+PERIODS = [PERIOD_1, PERIOD_2, PERIOD_3]

@@ -64,26 +64,23 @@ def nb_test(matrix, state, num_artists):
     ###################
     return output, top_2
 
-def evaluate(output, label, artists):
+def evaluate(output, label, artists, verbose=False):
     print "__EVALUATION__"
     error = (output != label).sum() * 1. / len(output)
     print 'Overall Accuracy: %1.4f' % (1 - error)
-    num_artists = len(artists)
-    print len(label)
-    acc_per_artists = []
-    for i in range(num_artists):
-        artist_locs = np.where(label == i)
-        print output
-        print label
-        artist_error = (output[artist_locs] != label[artist_locs]).sum() * 1. / len(artist_locs[0])
-        acc_per_artists.append((artists[i], 1 - artist_error))
-   
+    if verbose:
+        num_artists = len(artists)
+        acc_per_artists = []
+        for i in range(num_artists):
+            artist_locs = np.where(label == i)
+            artist_error = (output[artist_locs] != label[artist_locs]).sum() * 1. / len(artist_locs[0])
+            acc_per_artists.append((artists[i], 1 - artist_error))
 
-    acc_per_artists.sort(key=itemgetter(1), reverse=True)
-    for artist, value in acc_per_artists:
-        print "Artist: " + str(artist)
-        print "Accuracy: " + str(value)
-        print
+        acc_per_artists.sort(key=itemgetter(1), reverse=True)
+        for artist, value in acc_per_artists:
+            print "Artist: " + str(artist)
+            print "Accuracy: " + str(value)
+            print
 
     return error
 
@@ -93,16 +90,15 @@ def evaluateTop2(top_2, label, artists):
     error = ((1 -np.any([top_2[:, 0] == label, top_2[:, 1] == label], axis=0)).sum()) * 1. / float(top_2.shape[0])
     print 'Overall Accuracy: %1.4f' % (1 - error)
     num_artists = len(artists)
-    print len(label)
+    #print len(label)
     acc_per_artists = []
     for i in range(num_artists):
         artist_locs = np.where(label == i)
-        print top_2[artist_locs, 0]
+        #print top_2[artist_locs, 0]
         artist_accuracy = np.any([top_2[artist_locs, 0] == label[artist_locs],
                         top_2[artist_locs, 1] == label[artist_locs]], axis=0).sum() * 1. / len(artist_locs[0])
         acc_per_artists.append((artists[i], artist_accuracy))
         print "NUM GUESSED FOR " + str(artists[i])
-        print len(artist_locs[0])
 
     acc_per_artists.sort(key=itemgetter(1), reverse=True)
     for artist, value in acc_per_artists:
@@ -121,19 +117,21 @@ def findIndicators(state, tokenlist):
     descending = np.argsort(log_diff)[::-1]
     # get the top 5 values
     top5 = descending[0:5]
-    print np.array(tokenlist)[top5]
 
 
 def main():
     if len(sys.argv) > 1:
         lower = sys.argv[1]
         upper = sys.argv[2]
+        TF = sys.argv[3]
 
-        strain = 'train_data_' + str(lower) + '-' + str(upper) + '.csv'
-        stest = 'test_data_' + str(lower) + '-' + str(upper) + '.csv'
-
-        trainMatrix = pd.read_csv(strain).sample(frac=1)
-        testMatrix = pd.read_csv(stest).sample(frac=1)
+        strain = 'train_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
+        sdev = 'dev_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
+        stest = 'test_' + str(lower) + '-' + str(upper) + '_' + TF + '.csv'
+        
+        trainMatrix = pd.read_csv(strain)#.sample(frac=1)
+        devMatrix = pd.read_csv(sdev)#.sample(frac=1)
+        testMatrix = pd.read_csv(stest)#.sample(frac=1)
 
     else:
         trainMatrix = pd.read_csv('train_10-1000_binary.csv').sample(frac=1)
@@ -142,26 +140,33 @@ def main():
     artists = getArtists()
     num_artists = len(artists)
 
-    trainCategory = np.array(trainMatrix.iloc[:, 1])
-    print("TRAIN CATEGORY: ", trainCategory)
+    trainCategory = np.array(trainMatrix.iloc[:, 0])
     trainData = np.array(trainMatrix.iloc[:, 2:])
-    print("TRAIN DATA: ", trainData)
 
-    state = nb_train(trainData, trainCategory, num_artists)
+    devCategory = np.array(devMatrix.iloc[:, 0])
+    devData = np.array(devMatrix.iloc[:, 2:])
 
-    testCategory = np.array(testMatrix.iloc[:, 1])
+    testCategory = np.array(testMatrix.iloc[:, 0])
     testData = np.array(testMatrix.iloc[:, 2:])
 
-    output, top_2 = nb_test(testData, state, num_artists)
+    state = nb_train(trainData, trainCategory, num_artists)
+    
+    print("TRAIN Accuracy")
+    train_output = nb_test(trainData, state, num_artists)[0]
+    train_error = evaluate(train_output, trainCategory, artists)
 
+    print("DEV Accuracy")
+    dev_output = nb_test(devData, state, num_artists)[0]
+    dev_error = evaluate(dev_output, devCategory, artists)
+
+    print("TEST Accuracy: ")
+    output, _ = nb_test(testData, state, num_artists)
     error = evaluate(output, testCategory, artists)
     #evaluateTop2(top_2, testCategory, artists)
 
-    #train_output = nb_test(trainData, state, num_artists)
-    #train_error = evaluate(train_output, trainCategory, artists)
+    
 
     #findIndicators(state, )
-    return
 
 if __name__ == '__main__':
     main()

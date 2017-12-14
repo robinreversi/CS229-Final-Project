@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import sys
 import numpy as np
+import regex as re
 
 ps = ps()
 VOCAB_FILE = "chosen_train.csv"
@@ -40,16 +41,37 @@ def extract_artist_map():
         artist_map[artist] = i
     return artist_map
 
-def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regular', verbose=0):
+def calc_idf(data, vocab):
+    m, n = data.shape
+
+    appearances = []
+    for i, data_pt in enumerate(data):
+        vocab_dict = dict.fromkeys(vocab, 0)
+        words = data_pt[2].decode('utf-8').split()
+        lyrics = [ps.stem(word) for word in words]
+
+        for word in lyrics:
+            word = re.sub(r'\p{P}+', "", word)
+            if word in vocab_dict:
+                vocab_dict[word] = 1
+
+        counts = np.array(vocab_dict.values())
+        appearances.append(counts)
+    appearances = np.array(appearances).sum(axis=0)
+    idf = np.log(float(m) / appearances)
+    return idf
+
+
+def featureExtractor(raw_data, filename, vocab, idf, lower=0, upper=20000, TF='regular', verbose=0):
     # setup
     # set of all words that appear in the song
     processed_data = []
     artist_map = extract_artist_map()
-    #TF = 'binary'
     K = 0.5
 
     for data_pt in raw_data:
         artist = artist_map[data_pt[0]]
+
         vocab_dict = dict.fromkeys(vocab, 0)
         words = data_pt[2].decode('utf-8').split()
         lyrics = [ps.stem(word) for word in words]
@@ -80,17 +102,19 @@ def featureExtractor(raw_data, filename, vocab, lower=0, upper=20000, TF='regula
                 if word in vocab_dict:
                     vocab_dict[word] = K + ((1 - K) * (vocab_dict[word] / max_freq))
 
-        phi = ([1] + list(vocab_dict.values()))
-        #print phi
-        processed_data.append([artist] + phi)
+        counts = np.array(vocab_dict.values())
+        phi = np.concatenate((np.array([1]), counts))
+        processed_data.append(np.concatenate((np.array([artist]), phi)))
 
     if(TF != 'binary'):
-        x = np.array(processed_data)[:, 1:]
-        y = np.array(processed_data)[:, 0]
-        x = normalize(x)
+        processed_data = np.array(processed_data)
+        x = processed_data[:, 2:] * idf
+        y = processed_data[:, 0:2]
         processed_data = np.append(y, x, axis=1)
 
+
     processed_df = pd.DataFrame(processed_data)
+    print processed_df.head()
     processed_df.to_csv(filename + '_' + TF + '.csv', index=False)
 
 
@@ -107,20 +131,17 @@ def split_data(data, test_size):
         test_data = test_data.append(artist_test)
     return train_data, test_data
 
-
-def main():
-    '''
-    data = pd.read_csv('./data_scraping/finaldata.csv', delimiter='|')
-    train_data, test_data = split_data(data, .2)
-    train_data, dev_data = split_data(train_data, .25)
-    train_data = train_data.as_matrix()
-    dev_data = dev_data.as_matrix()
-    test_data = test_data.as_matrix()
+def initialize_data_sets(raw_data_path):
+    data = pd.read_csv(raw_data_path, delimiter='|')
+    train_data, test_data = split_data(data, .15)
+    train_data, dev_data = split_data(train_data, .125)
 
     pd.DataFrame(train_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_train.csv', sep="|", index=False)
     pd.DataFrame(dev_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_dev.csv', sep="|", index=False)
     pd.DataFrame(test_data, columns=["Artist", "Title", "Lyrics"]).to_csv('chosen_test.csv', sep="|", index=False)
-    '''
+
+def main():
+    #initialize_data_sets('./data_scraping/finaldata.csv')
 
     train_data = pd.read_csv('chosen_train.csv', delimiter='|').as_matrix()
     dev_data = pd.read_csv('chosen_dev.csv', delimiter='|').as_matrix()
@@ -135,16 +156,10 @@ def main():
         sdev = 'dev_' + str(lower) + '-' + str(upper)
         stest = 'test_' + str(lower) + '-' + str(upper)
         vocab = buildVocabulary(lower, upper, VOCAB_FILE)
-        featureExtractor(train_data, strain, vocab, lower, upper, TF)
-        featureExtractor(dev_data, sdev, vocab, lower, upper, TF, vocab)
-        featureExtractor(test_data, stest, vocab, lower, upper, TF, vocab)
-
-    else:
-        vocab = buildVocabulary(10, 1000)
-        featureExtractor(train_data, 'train_data', vocab)
-        featureExtractor(train_data, 'dev_data', vocab)
-        featureExtractor(test_data, 'test_data', vocab)
-
+        idf = calc_idf(train_data, vocab)
+        featureExtractor(train_data, strain, vocab, idf, lower, upper, TF)
+        featureExtractor(dev_data, sdev, vocab, idf, lower, upper, TF, vocab)
+        featureExtractor(test_data, stest, vocab, idf, lower, upper, TF, vocab)
 
 if __name__ == "__main__":
     main()
