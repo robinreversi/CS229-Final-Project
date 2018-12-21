@@ -16,6 +16,13 @@ Here's the TL;DR:
 - Algorithms have been developed to identify the authors in other contexts, e.g. literary texts, news articles, and tweets.
 - Project aim: *identify the rapper of a song based only on lyrics, from a given set of rappers.*
 - Parameters of the resulting model can be used to explore characteristics of rap lyrics, e.g. uniqueness of vocabulary or recurring lyrical themes.
+- Best top 2 accuracy of 87.8% on the dev set
+
+Our approaches to modelling the situation include:
+- Multiclass Naive Bayes
+- Softmax regression
+- Neural networks
+- One-vs-all Multiclass SVMs
 
 ----------------------------------------
 
