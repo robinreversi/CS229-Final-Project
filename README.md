@@ -24,5 +24,4 @@ Our approaches to modelling the situation include:
 - Neural networks
 - One-vs-all Multiclass SVMs
 
-----------------------------------------
-
+For more about the sources of data, preprocessing techniques, classification models, performance levels, additional metrics (e.g. the importance matrix that identifies how indiciative a word _w_ is of rapper _r_), possible sources of error, and scope of future work, please look at the poster and paper available above.
